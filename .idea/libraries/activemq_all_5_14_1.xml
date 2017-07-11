@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="activemq-all-5.14.1">
+    <CLASSES>
+      <root url="jar://$APPLICATION_HOME_DIR$/lib/forms_rt.jar!/" />
+      <root url="jar://$PROJECT_DIR$/activemq-all-5.14.5.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

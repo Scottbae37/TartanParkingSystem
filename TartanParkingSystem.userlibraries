@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<eclipse-userlibraries>
+  <library name="activemq-all-5.14.1">
+    <archive path="D:/IntelliJ IDEA Community Edition 2017.1.4/lib/forms_rt.jar" />
+    <archive path="D:/TartanParkingSystem/activemq-all-5.14.5.jar" />
+  </library>
+</eclipse-userlibraries>
+
