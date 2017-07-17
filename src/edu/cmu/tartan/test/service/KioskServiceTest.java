@@ -1,4 +1,4 @@
-package edu.cmu.tartan.service;
+package edu.cmu.tartan.test.service;
 
 import static org.junit.Assert.*;
 
