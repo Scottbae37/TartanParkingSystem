@@ -1,6 +1,4 @@
-package edu.cmu.tartan.test.service;
-
-import static org.junit.Assert.*;
+package edu.cmu.tartan.service;
 
 /**
  * Created by chongjae.yoo on 2017-07-18.

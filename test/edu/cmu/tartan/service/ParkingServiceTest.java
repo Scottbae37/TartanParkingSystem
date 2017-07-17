@@ -1,11 +1,9 @@
-package edu.cmu.tartan.test.service;
-
-import static org.junit.Assert.*;
+package edu.cmu.tartan.service;
 
 /**
  * Created by chongjae.yoo on 2017-07-18.
  */
-public class TartanServiceTest {
+public class ParkingServiceTest {
     @org.junit.Before
     public void setUp() throws Exception {
     }
@@ -15,19 +13,23 @@ public class TartanServiceTest {
     }
 
     @org.junit.Test
-    public void sendMessage() throws Exception {
+    public void update() throws Exception {
     }
 
     @org.junit.Test
-    public void onMessage() throws Exception {
+    public void connectToGarage() throws Exception {
     }
 
     @org.junit.Test
-    public void init() throws Exception {
+    public void disconnectFromGarage() throws Exception {
     }
 
     @org.junit.Test
-    public void stop() throws Exception {
+    public void finalize() throws Exception {
+    }
+
+    @org.junit.Test
+    public void run() throws Exception {
     }
 
     @org.junit.Test
