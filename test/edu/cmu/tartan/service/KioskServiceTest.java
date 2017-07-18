@@ -1,4 +1,9 @@
 package edu.cmu.tartan.service;
+import edu.cmu.tartan.TartanKioskWindow;
+
+import java.util.HashMap;
+
+import static org.mockito.Mockito.*;
 
 /**
  * Created by chongjae.yoo on 2017-07-18.
@@ -14,6 +19,11 @@ public class KioskServiceTest {
 
     @org.junit.Test
     public void handleMessage() throws Exception {
+        ParkingService parkingService = mock(ParkingService.class);
+        HashMap<String, Object> msg = new HashMap<String, Object>();
+        msg.put(TartanParams.COMMAND, TartanParams.MSG_REDEEM_RSVP);
+        parkingService.handleMessage(msg);
+        verify(parkingService).handleMessage(msg);
     }
 
     @org.junit.Test
