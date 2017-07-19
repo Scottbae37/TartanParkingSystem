@@ -59,7 +59,7 @@ import java.util.*;
         body.put(TartanParams.COMMAND, TartanParams.MSG_GET_PARKING_SPOTS);
         sendMessage(ParkingService.PARKING_SERVICE, body);
 
-        status = TartanServiceStatus.RUNNING;
+        // status = TartanServiceStatus.RUNNING;
     }
 
     /**
@@ -279,7 +279,6 @@ import java.util.*;
             if (rsvpStore.isDuplicate(newRsvp)) {
                 response.put(TartanParams.COMMAND, TartanParams.ERROR);
 
-                HashMap<String, Object> body = new HashMap<String, Object>(); /* FIXME: Unused variable */
                 response.put(TartanParams.PAYLOAD, "Reservation is a duplicate, please submit unique reservation");
 
                 sendMessage((String) request.get(TartanParams.SOURCE_ID), response);
@@ -384,7 +383,7 @@ import java.util.*;
             }
 
             // found reservation for this customer, now check that it is valid
-            if (!results.isEmpty()) {
+            if (results!= null && !results.isEmpty()) {
 
                 Vector<Reservation> validReservations = new Vector<Reservation>();
                 Date now = Calendar.getInstance().getTime();

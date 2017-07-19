@@ -204,7 +204,7 @@ public class ParkingService extends TartanService implements Observer {
             if (!parkedOK) {
                 Integer wrongSpot = TartanParams.INVALID_SPOT;
                 for (int i=0; i < preParkState.length; i++) {
-                    if (preParkState[i] != occupiedState[i]) {
+                    if (!preParkState[i].equals(occupiedState[i]) ) {
                         wrongSpot = i;
                         break;
                     }

@@ -36,7 +36,7 @@ public class PaymentService extends TartanService {
 
         super.init(PAYMENT_SERVICE);
 
-        status = TartanServiceStatus.STOPPED;
+        // status = TartanServiceStatus.STOPPED;
     }
 
     private Long setRate() {
@@ -72,7 +72,7 @@ public class PaymentService extends TartanService {
     @Override
     public void run() {
         System.out.println("PaymentService.run");
-        status = TartanServiceStatus.RUNNING;
+        // status = TartanServiceStatus.RUNNING;
     }
 
     /**

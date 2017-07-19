@@ -27,7 +27,7 @@ public class Payment implements Serializable {
     private Reservation rsvp = null;
 
     /** The key used to protect data */
-    private final String key = "TARTAN";
+    private static final String key = "TARTAN";
 
     private Long fee = null;
 

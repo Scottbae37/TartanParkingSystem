@@ -9,7 +9,7 @@ import java.util.StringTokenizer;
 
 /**
  * Manages connection and data flow to the Tartan Garage.
- *
+ * <p>
  * Project: LG Exec Ed SDET Program
  * Copyright: 2017 Jeffrey S. Gennari
  * Versions:
@@ -17,19 +17,29 @@ import java.util.StringTokenizer;
  */
 public class TartanGarageManager extends Observable {
 
-    /** Connection to the garage */
+    /**
+     * Connection to the garage
+     */
     private TartanGarageConnection connection = null;
 
-    /** Thread to manage currentState updates */
+    /**
+     * Thread to manage currentState updates
+     */
     private Thread updateThread = null;
 
-    /** the currentState of the garage, updated every 5 seconds */
+    /**
+     * the currentState of the garage, updated every 5 seconds
+     */
     HashMap<String, Object> currentState = new HashMap<String, Object>();
 
-    /** The list of parking spots */
+    /**
+     * The list of parking spots
+     */
     ArrayList<Integer> parkingSpots = new ArrayList<Integer>();
 
-    /** Garage capacity */
+    /**
+     * Garage capacity
+     */
     private final Integer capacity = 4;
 
     /**
@@ -41,7 +51,7 @@ public class TartanGarageManager extends Observable {
 
         connection = conn;
 
-        for (int i=0; i<capacity; ++i) {
+        for (int i = 0; i < capacity; ++i) {
             parkingSpots.add(i);
         }
     }
@@ -51,14 +61,18 @@ public class TartanGarageManager extends Observable {
      *
      * @return The capacity.
      */
-    public Integer getCapacity() { return capacity; }
+    public Integer getCapacity() {
+        return capacity;
+    }
 
     /**
      * Fetch the list of parking spots.
      *
      * @return The list of parking spots.
      */
-    public ArrayList<Integer> getParkingSpots() { return parkingSpots; }
+    public ArrayList<Integer> getParkingSpots() {
+        return parkingSpots;
+    }
 
     /**
      * Disconnect from the house
@@ -70,28 +84,35 @@ public class TartanGarageManager extends Observable {
     /**
      * Send command to close the exit gate.
      */
-    public void closeExitGate() { toggleExitGate(false); }
+    public void closeExitGate() {
+        toggleExitGate(false);
+    }
 
     /**
      * Send command to open the exit gate.
      */
-    public void openExitGate() { toggleExitGate(true); }
+    public void openExitGate() {
+        toggleExitGate(true);
+    }
 
     /**
      * Send command to close the entry gate.
      */
-    public void closeEntryGate() { toggleEntryGate(false); }
+    public void closeEntryGate() {
+        toggleEntryGate(false);
+    }
 
     /**
      * Send command to open the entry gate.
      */
-    public void openEntryGate() { toggleEntryGate(true); }
+    public void openEntryGate() {
+        toggleEntryGate(true);
+    }
 
     /**
      * Send command to open or close the entry gate.
      *
      * @param state True means open, false means close.
-     *
      * @return True if command successfully executed.
      */
     private Boolean toggleEntryGate(Boolean state) {
@@ -100,8 +121,7 @@ public class TartanGarageManager extends Observable {
         msg.append(TartanSensors.ENTRY_GATE + TartanSensors.PARAM_EQ);
         if (state) {
             msg.append(TartanSensors.OPEN);
-        }
-        else {
+        } else {
             msg.append(TartanSensors.CLOSE);
         }
         msg.append(TartanSensors.MSG_END);
@@ -119,7 +139,6 @@ public class TartanGarageManager extends Observable {
      * Send command to open or close the exit gate.
      *
      * @param state True means open, false means close.
-     *
      * @return True if command successfully executed, false otherwise.
      */
     public Boolean toggleExitGate(Boolean state) {
@@ -128,8 +147,7 @@ public class TartanGarageManager extends Observable {
         msg.append(TartanSensors.EXIT_GATE + TartanSensors.PARAM_EQ);
         if (state) {
             msg.append(TartanSensors.OPEN);
-        }
-        else {
+        } else {
             msg.append(TartanSensors.CLOSE);
         }
         msg.append(TartanSensors.MSG_END);
@@ -147,7 +165,6 @@ public class TartanGarageManager extends Observable {
      * Send command to turn parking stall lights on/off.
      *
      * @param state the list of parking stall lights.
-     *
      * @return True if command successfully executed, false otherwise.
      */
     public Boolean setParkingSpotLights(ArrayList<String> state) {
@@ -155,7 +172,7 @@ public class TartanGarageManager extends Observable {
         StringBuffer msg = new StringBuffer();
 
         msg.append(TartanSensors.PARKING_SPOT_LIGHT + TartanSensors.PARAM_EQ + TartanSensors.LIST_START);
-        for (int i=0; i < state.size(); i++) {
+        for (int i = 0; i < state.size(); i++) {
             String spot = String.valueOf(i + 1);
             msg.append(spot + TartanSensors.PARAM_EQ + state.get(i));
             if (i + 1 < state.size()) {
@@ -178,7 +195,7 @@ public class TartanGarageManager extends Observable {
      * @return true if connected, false otherwise
      */
     public Boolean isConnected() {
-        if (connection!=null) {
+        if (connection != null) {
             return connection.isConnected();
         }
         return false;
@@ -242,9 +259,6 @@ public class TartanGarageManager extends Observable {
         if (String.valueOf(body.charAt(body.length() - 1)).equals(TartanSensors.MSG_END)) {
             body = body.substring(0, body.length() - 1);
         }
-        if (body == null) {
-            return;
-        }
 
         synchronized (currentState) {
 
@@ -276,21 +290,17 @@ public class TartanGarageManager extends Observable {
                 } else if (pcmd.equals(TartanSensors.ENTRY_LIGHT)) {
                     if (pval.equals("R")) {
                         currentState.put(TartanSensors.ENTRY_LIGHT, TartanSensors.RED);
-                    }
-                    else if (pval.equals("G")) {
+                    } else if (pval.equals("G")) {
                         currentState.put(TartanSensors.ENTRY_LIGHT, TartanSensors.GREEN);
-                    }
-                    else if (pval.equals("0")) {
+                    } else if (pval.equals("0")) {
                         currentState.put(TartanSensors.ENTRY_LIGHT, TartanSensors.OFF);
                     }
                 } else if (pcmd.equals(TartanSensors.EXIT_LIGHT)) {
                     if (pval.equals("R")) {
                         currentState.put(TartanSensors.EXIT_LIGHT, TartanSensors.RED);
-                    }
-                    else if (pval.equals("G")) {
+                    } else if (pval.equals("G")) {
                         currentState.put(TartanSensors.EXIT_LIGHT, TartanSensors.GREEN);
-                    }
-                    else if (pval.equals("0")) {
+                    } else if (pval.equals("0")) {
                         currentState.put(TartanSensors.EXIT_LIGHT, TartanSensors.OFF);
                     }
                 } else if (pcmd.equals(TartanSensors.ENTRY_IR)) {
@@ -335,17 +345,16 @@ public class TartanGarageManager extends Observable {
     }
 
     /**
-     *  Process new parking stall states.
+     * Process new parking stall states.
      *
      * @param stateString The new states.
-     *
      * @return a list of parking stall state information.
      */
     private ArrayList<Integer> processParkingSpots(String stateString) {
 
         ArrayList<Integer> psState = new ArrayList<Integer>();
         char[] c = stateString.toCharArray();
-        for (int i=0; i < c.length; i++) {
+        for (int i = 0; i < c.length; i++) {
             psState.add(Integer.parseInt(String.valueOf(c[i])));
         }
         return psState;
@@ -355,7 +364,6 @@ public class TartanGarageManager extends Observable {
      * Issue command to set exit light.
      *
      * @param mode The mode for the exit light.
-     *
      * @return True on success, false otherwise.
      */
     public Boolean setExitLight(String mode) {
@@ -373,7 +381,6 @@ public class TartanGarageManager extends Observable {
      * Issue command to set entry light.
      *
      * @param mode The mode for the entry light.
-     *
      * @return True on success, false otherwise.
      */
     public Boolean setEntryLight(String mode) {
@@ -407,11 +414,14 @@ public class TartanGarageManager extends Observable {
                     if (vehicleDetectedAtEntry(currentState)) {
                         alertVehicleAtEntry();
                     }
-                    if (vehicleDetectedAtExit(currentState) ) {
+                    if (vehicleDetectedAtExit(currentState)) {
                         alertVehicleAtExit();
                     }
                     // currently a 5sec delay
-                    try { Thread.sleep(5000); } catch (InterruptedException ie) { }
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException ie) {
+                    }
                 }
             }
         });
@@ -445,7 +455,6 @@ public class TartanGarageManager extends Observable {
      * Signal vehicle at entry gate.
      *
      * @param state The state of the Tartan Garage.
-     *
      * @return True if vehicle detected, false otherwise.
      */
     private Boolean vehicleDetectedAtEntry(HashMap<String, Object> state) {
@@ -463,7 +472,6 @@ public class TartanGarageManager extends Observable {
      * Signal vehicle at exit gate.
      *
      * @param state The state of the Tartan Garage.
-     *
      * @return True if vehicle detected, false otherwise.
      */
     private Boolean vehicleDetectedAtExit(HashMap<String, Object> state) {

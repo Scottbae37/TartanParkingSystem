@@ -16,7 +16,7 @@ import java.util.Vector;
 public class ReservationStore {
 
     /** The flat file that contains all the reservations. */
-    private final String RESERVATION_STORE = "rsvp.txt";
+    private static final String RESERVATION_STORE = "rsvp.txt";
 
     /** The path to the reservation database. */
     private final String settingsPath;
