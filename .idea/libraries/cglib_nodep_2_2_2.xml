@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="cglib-nodep-2.2.2">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/cglib-nodep-2.2.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/javassist-3.21.0-GA.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/objenesis-2.4.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
