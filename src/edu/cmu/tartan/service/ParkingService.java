@@ -204,7 +204,7 @@ public class ParkingService extends TartanService implements Observer {
             if (!parkedOK) {
                 Integer wrongSpot = TartanParams.INVALID_SPOT;
                 for (int i=0; i < preParkState.length; i++) {
-                    if (preParkState[i] != occupiedState[i]) {
+                    if (!preParkState[i].equals(occupiedState[i]) ) {
                         wrongSpot = i;
                         break;
                     }
@@ -320,7 +320,7 @@ public class ParkingService extends TartanService implements Observer {
                 ListIterator<Reservation> iter = occupancy.listIterator();
 
                 while (iter.hasNext()) {
-                    if (iter.next().getVehicleID() == vid) { /* FIXME: vid should compare by using equals() method */
+                    if (iter.next().getVehicleID().equals(vid)) { /* FIXME: vid should compare by using equals() method */
                         iter.remove();
                         break;
                     }

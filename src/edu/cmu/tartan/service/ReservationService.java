@@ -59,7 +59,7 @@ import java.util.*;
         body.put(TartanParams.COMMAND, TartanParams.MSG_GET_PARKING_SPOTS);
         sendMessage(ParkingService.PARKING_SERVICE, body);
 
-        status = TartanServiceStatus.RUNNING;
+        // status = TartanServiceStatus.RUNNING;
     }
 
     /**
@@ -120,7 +120,7 @@ import java.util.*;
         Integer spot = getParkingSpot(rsvp);
 
 
-        if ((spot != TartanParams.INVALID_SPOT) || (spot != TartanParams.SPOT_UNAVAILABLE)) {
+        if (!(spot.equals(TartanParams.INVALID_SPOT)) || !(spot.equals(TartanParams.SPOT_UNAVAILABLE))) {
             response.put(TartanParams.COMMAND, TartanParams.MSG_UPDATE_RSVP);
             rsvp.setSpotId(spot);
             response.put(TartanParams.PAYLOAD, rsvp);
@@ -279,7 +279,6 @@ import java.util.*;
             if (rsvpStore.isDuplicate(newRsvp)) {
                 response.put(TartanParams.COMMAND, TartanParams.ERROR);
 
-                HashMap<String, Object> body = new HashMap<String, Object>(); /* FIXME: Unused variable */
                 response.put(TartanParams.PAYLOAD, "Reservation is a duplicate, please submit unique reservation");
 
                 sendMessage((String) request.get(TartanParams.SOURCE_ID), response);
@@ -297,7 +296,7 @@ import java.util.*;
             // get a spot for this window
             Integer spot = getParkingSpot(newRsvp);
 
-            if ((spot == TartanParams.INVALID_SPOT) || (spot == TartanParams.SPOT_UNAVAILABLE)) {
+            if ((spot.equals(TartanParams.INVALID_SPOT)) || (spot.equals(TartanParams.SPOT_UNAVAILABLE))) {
                 response.put(TartanParams.COMMAND, TartanParams.ERROR);
                 response.put(TartanParams.PAYLOAD, "Parking space unavailable at desired time");
                 sendMessage((String) request.get(TartanParams.SOURCE_ID), response);
@@ -384,7 +383,7 @@ import java.util.*;
             }
 
             // found reservation for this customer, now check that it is valid
-            if (!results.isEmpty()) {
+            if (results!= null && !results.isEmpty()) {
 
                 Vector<Reservation> validReservations = new Vector<Reservation>();
                 Date now = Calendar.getInstance().getTime();

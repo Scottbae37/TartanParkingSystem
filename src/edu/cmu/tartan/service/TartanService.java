@@ -26,16 +26,8 @@ public abstract class TartanService implements MessageListener, Runnable {
         ERROR;
     }
 
-    /** The current service status */
-    protected TartanServiceStatus status;
-
-    private HashMap<Integer,HashMap<String,Object> > requests = new HashMap<Integer,HashMap<String,Object> >();
-
     /** The output connection to the  bus. */
-    protected MessageProducer outChannel;
-
-    /** The input connection to the task bus. */
-    protected MessageConsumer inChannel;
+    private MessageProducer outChannel;
 
     private TartanServiceMessageBus bus;
 
@@ -92,7 +84,7 @@ public abstract class TartanService implements MessageListener, Runnable {
 
         bus = TartanServiceMessageBus.connect();
         try {
-            inChannel = bus.getConsumer(TartanServiceMessageBus.TARTAN_TOPIC);
+            MessageConsumer inChannel = bus.getConsumer(TartanServiceMessageBus.TARTAN_TOPIC);
             inChannel.setMessageListener(this);
 
             outChannel = bus.getProducer(TartanServiceMessageBus.TARTAN_TOPIC);

@@ -31,7 +31,7 @@ public class KioskService extends TartanService {
 
         super.init(KIOSK_SERVICE);
 
-        status = TartanServiceStatus.STOPPED;
+        // status = TartanServiceStatus.STOPPED;
     }
 
     /**
@@ -111,7 +111,7 @@ public class KioskService extends TartanService {
 //        if (state == false) {
 //            vid =
 //        }
-        if (vid != null || (vid != null && ("".equals(vid) == false))) {
+        if (vid != null && ("".equals(vid) == false)) {
 
             HashMap<String, Object> msg = new HashMap<String, Object>();
             msg.put(TartanParams.COMMAND, TartanParams.MSG_EXIT_GARAGE);
@@ -295,7 +295,9 @@ public class KioskService extends TartanService {
             // only one reservation.
             selectedRsvp = rsvps.elementAt(0);
         }
-
+        if (selectedRsvp == null){
+            return;
+        }
         selectedRsvp.setIsRedeemed(true);
 
         // if the reservation has not been paid for, then pay for it now.
@@ -341,7 +343,7 @@ public class KioskService extends TartanService {
     @Override
     public void run() {
         System.out.println("KioskService.run");
-        status = TartanServiceStatus.RUNNING;
+        // status = TartanServiceStatus.RUNNING;
     }
 
     /**
