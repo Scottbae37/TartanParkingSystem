@@ -1,13 +1,18 @@
 package edu.cmu.tartan.edu.cmu.tartan.reservation;
 
+import org.apache.camel.component.file.strategy.FileLockExclusiveReadLockStrategy;
+
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Vector;
 
 /**
  * The data store for reservations.
- *
+ * <p>
  * Project: LG Exec Ed SDET Program
  * Copyright: 2017 Jeffrey S. Gennari
  * Versions:
@@ -15,13 +20,19 @@ import java.util.Vector;
  */
 public class ReservationStore {
 
-    /** The flat file that contains all the reservations. */
-    private static final String RESERVATION_STORE = "rsvp.txt";
+    /**
+     * The flat file that contains all the reservations.
+     */
+    private final String RESERVATION_STORE = "rsvp.txt";
 
-    /** The path to the reservation database. */
+    /**
+     * The path to the reservation database.
+     */
     private final String settingsPath;
 
-    /** The list of all reservations. */
+    /**
+     * The list of all reservations.
+     */
     private Vector<Reservation> reservations = new Vector<Reservation>();
 
     /**
@@ -41,13 +52,12 @@ public class ReservationStore {
      * Get the set of reservations for a given customer.
      *
      * @param name The name of the customer.
-     *
      * @return The reservations associated with a customer.
      */
     public Vector<Reservation> lookupByCustomer(String name) {
         Vector<Reservation> results = new Vector<Reservation>();
-        for ( Reservation r : reservations) {
-            if (r.getCustomerName().equals(name))  {
+        for (Reservation r : reservations) {
+            if (r.getCustomerName().equals(name)) {
                 results.add(r);
             }
         }
@@ -58,12 +68,11 @@ public class ReservationStore {
      * Get the reservations for a given vehicle
      *
      * @param name the id of the vehicle (license plate).
-     *
      * @return The list of reservations for a given vehicle.
      */
     public Vector<Reservation> lookupByVehicle(String name) {
         Vector<Reservation> results = new Vector<Reservation>();
-        for ( Reservation r : reservations) {
+        for (Reservation r : reservations) {
             if (r.getCustomerName().equals(name)) { /* FIXME: Maybe Copy & Paste bug, should check vehicle */
                 results.add(r);
             }
@@ -75,7 +84,6 @@ public class ReservationStore {
      * Add a reservation to the database.
      *
      * @param r the new reservation.
-     *
      * @return True when the reservation is added.
      */
     public Boolean addReservation(Reservation r) {
@@ -90,46 +98,43 @@ public class ReservationStore {
      */
     public void loadReservations() throws Exception {
 
-        File file = new File(settingsPath + File.separator + RESERVATION_STORE);
+        try (BufferedReader br = Files.newBufferedReader(Paths.get(settingsPath + File.separator + RESERVATION_STORE), StandardCharsets.UTF_8)) {
 
-        BufferedReader br = new BufferedReader(new FileReader(file));
+            String line;
+            while ((line = br.readLine()) != null) { // one reservation per line
+                Reservation reservation = new Reservation();
+                String[] entries = line.split(",");
+                for (String entry : entries) {
 
-        String line;
-        while ((line = br.readLine()) != null) { // one reservation per line
-            Reservation reservation = new Reservation();
-            String[] entries = line.split(",");
-            for (String entry : entries) {
+                    String[] item = entry.split("=");
+                    String key = item[0];
+                    String val = item[1];
 
-                String [] item = entry.split("=");
-                String key = item[0];
-                String val = item[1];
-
-                if (key.equals("name")) {
-                    reservation.setCustomerName(val);
-                } else if (key.equals("start")) {
-                    reservation.setStartTime(val);
-                } else if (key.equals("end")) {
-                    reservation.setEndTime(val);
-                } else if (key.equals("vehicle")) {
-                    reservation.setVehicleID(val);
-                } else if (key.equals("spot")) {
-                    reservation.setSpotId(Integer.parseInt(val));
-                } else if (key.equals("paid")) {
-                    reservation.setIsPaid(Boolean.valueOf(val));
+                    if (key.equals("name")) {
+                        reservation.setCustomerName(val);
+                    } else if (key.equals("start")) {
+                        reservation.setStartTime(val);
+                    } else if (key.equals("end")) {
+                        reservation.setEndTime(val);
+                    } else if (key.equals("vehicle")) {
+                        reservation.setVehicleID(val);
+                    } else if (key.equals("spot")) {
+                        reservation.setSpotId(Integer.parseInt(val));
+                    } else if (key.equals("paid")) {
+                        reservation.setIsPaid(Boolean.valueOf(val));
+                    }
                 }
+                addReservation(reservation);
             }
-            addReservation(reservation);
         }
     }
 
     /**
-     *  On shutdown, save the updated reservation list.
+     * On shutdown, save the updated reservation list.
      */
     public void shutdown() {
 
-        try {
-            File f = new File(settingsPath + File.separator + RESERVATION_STORE);
-            BufferedWriter bw = new BufferedWriter(new FileWriter(f, false));
+        try (BufferedWriter bw = Files.newBufferedWriter(Paths.get(settingsPath + File.separator + RESERVATION_STORE), StandardCharsets.UTF_8)) {
 
             DateFormat dateFormat = new SimpleDateFormat("yyyy:MM:dd:HH:mm");
 
@@ -148,9 +153,7 @@ public class ReservationStore {
                 }
             }
 
-            bw.close();
-
-        } catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -159,13 +162,12 @@ public class ReservationStore {
      * Check for duplicate reservation.
      *
      * @param rsvp The reservation to check for.
-     *
      * @return true if duplicate found, false otherwise.
      */
     public Boolean isDuplicate(Reservation rsvp) {
 
         for (Reservation r : reservations) {
-            if (r.compareTo(rsvp) == 0) {
+            if (r.equals(rsvp)) {
                 return true;
             }
         }
@@ -177,7 +179,6 @@ public class ReservationStore {
      * Save a new reservation to the database.
      *
      * @param newRsvp The new reservation.
-     *
      * @return True if successfully saved, false otherwise.
      */
     public Boolean saveNewReservation(Reservation newRsvp) {
@@ -186,9 +187,7 @@ public class ReservationStore {
             return false;
         }
 
-        try {
-            File f = new File(settingsPath + File.separator + RESERVATION_STORE);
-            BufferedWriter bw = new BufferedWriter(new FileWriter(f, true));
+        try (BufferedWriter bw = Files.newBufferedWriter(Paths.get(settingsPath + File.separator + RESERVATION_STORE), StandardCharsets.UTF_8)){
 
             DateFormat dateFormat = new SimpleDateFormat("yyyy:MM:dd:HH:mm");
 
@@ -197,15 +196,16 @@ public class ReservationStore {
             String endDate = dateFormat.format(newRsvp.getEndTime());
 
             bw.write("name=" + newRsvp.getCustomerName() +
-                     ",vehicle="+ newRsvp.getVehicleID() +
-                     ",start= " + startDate + ",end=" + endDate +
+                    ",vehicle=" + newRsvp.getVehicleID() +
+                    ",start= " + startDate + ",end=" + endDate +
                     ",paid=" + String.valueOf(newRsvp.getIsPaid()) +
-                     ",spot=" + newRsvp.getSpotId().toString() + "\n");
-            bw.close();
+                    ",spot=" + newRsvp.getSpotId().toString() + "\n");
 
             return true;
 
-        } catch (Exception e) {e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return false;
     }
 
@@ -217,7 +217,7 @@ public class ReservationStore {
     public void markReservationRedeemed(Reservation rsvp) {
 
         for (Reservation r : reservations) {
-            if (r.compareTo(rsvp) == 0) {
+            if (r.equals(rsvp)) {
                 r.setIsRedeemed(true);
             }
         }

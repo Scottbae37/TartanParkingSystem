@@ -15,7 +15,7 @@ import java.util.Date;
  * Versions:
  * 1.0 November 2016 - initial version
  */
-public class Reservation implements Serializable, Comparable<Reservation> {
+public class Reservation implements Serializable{
 
     /** The start and end time for the reservation */
     private Date startTime, endTime;
@@ -279,14 +279,25 @@ public class Reservation implements Serializable, Comparable<Reservation> {
      * @return 0 if they are equal, -1 otherwise
      */
     @Override
-    public int compareTo(Reservation o) {
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
-        if (startTime.compareTo(o.getStartTime()) == 0)
-            if (endTime.compareTo(o.getEndTime()) == 0)
-                if (customerName.compareTo(o.getCustomerName()) == 0)
-                    if (vehicleID.compareTo(o.getVehicleID()) == 0)
-                        return 0;
-        return -1;
+        Reservation that = (Reservation) o;
+
+        if (!startTime.equals(that.startTime)) return false;
+        if (!endTime.equals(that.endTime)) return false;
+        if (!customerName.equals(that.customerName)) return false;
+        return vehicleID.equals(that.vehicleID);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = startTime.hashCode();
+        result = 31 * result + endTime.hashCode();
+        result = 31 * result + customerName.hashCode();
+        result = 31 * result + vehicleID.hashCode();
+        return result;
     }
 }
 

@@ -3,6 +3,8 @@ package edu.cmu.tartan.hardware;
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
 /**
  * A connection to the Tartan Garage. This class handles the network connection to the
@@ -43,7 +45,7 @@ public class TartanGarageConnection {
      * @param addr the house address
      * @return the established connection or null
      */
-    public static TartanGarageConnection getConnection(String addr) {
+    public synchronized static TartanGarageConnection getConnection(String addr) {
         if (addr!=null) {
             if (connection != null) {
                 if (connection.isConnected()) {
@@ -123,8 +125,10 @@ public class TartanGarageConnection {
         try {
             houseSocket = new Socket(address, PORT);
 
-            out = new BufferedWriter(new OutputStreamWriter(houseSocket.getOutputStream()));
-            in = new BufferedReader(new InputStreamReader( houseSocket.getInputStream()));
+            out = new BufferedWriter(new OutputStreamWriter(houseSocket.getOutputStream(), StandardCharsets.UTF_8));
+            in = new BufferedReader(new InputStreamReader(houseSocket.getInputStream(), StandardCharsets.UTF_8));
+
+
 
         } catch (UnknownHostException uhe) {
             System.out.println("Unknown host: " + address);

@@ -120,7 +120,7 @@ import java.util.*;
         Integer spot = getParkingSpot(rsvp);
 
 
-        if ((spot != TartanParams.INVALID_SPOT) || (spot != TartanParams.SPOT_UNAVAILABLE)) {
+        if (!(spot.equals(TartanParams.INVALID_SPOT)) || !(spot.equals(TartanParams.SPOT_UNAVAILABLE))) {
             response.put(TartanParams.COMMAND, TartanParams.MSG_UPDATE_RSVP);
             rsvp.setSpotId(spot);
             response.put(TartanParams.PAYLOAD, rsvp);
@@ -296,7 +296,7 @@ import java.util.*;
             // get a spot for this window
             Integer spot = getParkingSpot(newRsvp);
 
-            if ((spot == TartanParams.INVALID_SPOT) || (spot == TartanParams.SPOT_UNAVAILABLE)) {
+            if ((spot.equals(TartanParams.INVALID_SPOT)) || (spot.equals(TartanParams.SPOT_UNAVAILABLE))) {
                 response.put(TartanParams.COMMAND, TartanParams.ERROR);
                 response.put(TartanParams.PAYLOAD, "Parking space unavailable at desired time");
                 sendMessage((String) request.get(TartanParams.SOURCE_ID), response);
