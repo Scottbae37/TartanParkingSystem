@@ -47,6 +47,9 @@ public class TartanGarageDriver {
         PaymentService paymentService = new PaymentService();
         services.add(paymentService);
 
+        AdminService adminService = new AdminService();
+        services.add(adminService);
+
         ReservationService reservationService = new ReservationService(settings[0]);
         services.add(reservationService);
 
@@ -73,6 +76,7 @@ public class TartanGarageDriver {
             new Thread(kioskService).start();
             new Thread(parkingService).start();
             new Thread(paymentService).start();
+            new Thread(adminService).start();
         }
         else {
             JOptionPane.showMessageDialog(window,

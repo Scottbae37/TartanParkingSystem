@@ -43,6 +43,9 @@ public abstract class TartanService implements MessageListener, Runnable {
      */
     public synchronized void sendMessage(String targetService, HashMap<String, Object> messageBody) {
 
+        System.out.println("serviceId : "+serviceId);
+        System.out.println("targetService : "+targetService);
+
         messageBody.put(TartanParams.SOURCE_ID, serviceId);
         ObjectMessage msg = bus.generateMessage(messageBody, targetService);
         try {

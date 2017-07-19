@@ -5,6 +5,7 @@ import edu.cmu.tartan.edu.cmu.tartan.reservation.Payment;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.Reservation;
 
 import javax.swing.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -393,5 +394,15 @@ public class KioskService extends TartanService {
     @Override
     public void terminate() {
         stop();
+    }
+
+    public Boolean authenicate(ArrayList authlist) {
+        HashMap<String,Object> message = new HashMap<String, Object>();
+        message.put(TartanParams.COMMAND, TartanParams.MSG_AUTHENTICATE_ADMIN);
+        message.put(TartanParams.PAYLOAD, authlist);
+
+        System.out.println("call send admin");
+        sendMessage(AdminService.ADMIN_SERVICE, message);
+        return true;
     }
 }
