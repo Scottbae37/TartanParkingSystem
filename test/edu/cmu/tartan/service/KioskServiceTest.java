@@ -1,7 +1,10 @@
 package edu.cmu.tartan.service;
 
 import edu.cmu.tartan.TartanKioskWindow;
+import edu.cmu.tartan.edu.cmu.tartan.reservation.Payment;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.Reservation;
+import junit.framework.Assert;
+
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -19,72 +22,103 @@ import java.util.Vector;
  */
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(TartanServiceMessageBus.class)
+@PrepareForTest({ TartanServiceMessageBus.class, JOptionPane.class })
 public class KioskServiceTest {
 
-    KioskService kioskService;
-    TartanServiceMessageBus msgBus;
-    TartanKioskWindow window;
-    MessageConsumer consumer;
-    MessageProducer producer;
+	KioskService kioskService;
+	TartanServiceMessageBus msgBus;
+	TartanKioskWindow window;
+	Payment payment;
+	MessageConsumer consumer;
+	MessageProducer producer;
 
-    @org.junit.Before
-    public void setUp() throws Exception {
-        msgBus = PowerMockito.mock(TartanServiceMessageBus.class);
-        consumer = PowerMockito.mock(MessageConsumer.class);
-        producer = PowerMockito.mock(MessageProducer.class);
-        window = Mockito.mock(TartanKioskWindow.class);
-        PowerMockito.when(msgBus.getConsumer(TartanServiceMessageBus.TARTAN_TOPIC)).thenReturn(consumer);
-        PowerMockito.when(msgBus.getProducer(TartanServiceMessageBus.TARTAN_TOPIC)).thenReturn(producer);
-        PowerMockito.mockStatic(TartanServiceMessageBus.class);
-        PowerMockito.when(TartanServiceMessageBus.connect()).thenReturn(msgBus);
-        kioskService = new KioskService();
-        kioskService.setKiosk(window);
-    }
+	@org.junit.Before
+	public void setUp() throws Exception {
+		msgBus = PowerMockito.mock(TartanServiceMessageBus.class);
+		consumer = PowerMockito.mock(MessageConsumer.class);
+		producer = PowerMockito.mock(MessageProducer.class);
+		window = Mockito.mock(TartanKioskWindow.class);
+		payment = Mockito.mock(Payment.class);
 
-    @org.junit.After
-    public void tearDown() throws Exception {
-    }
+		PowerMockito.when(msgBus.getConsumer(TartanServiceMessageBus.TARTAN_TOPIC)).thenReturn(consumer);
+		PowerMockito.when(msgBus.getProducer(TartanServiceMessageBus.TARTAN_TOPIC)).thenReturn(producer);
+		PowerMockito.mockStatic(TartanServiceMessageBus.class);
+		PowerMockito.when(TartanServiceMessageBus.connect()).thenReturn(msgBus);
+		PowerMockito.mockStatic(JOptionPane.class);
+		PowerMockito.doNothing().when(JOptionPane.class, "showMessageDialog", Mockito.any(String.class),
+				Mockito.any(String.class));
 
-    @org.junit.Test
-    public void handleMessage() throws Exception {
-        HashMap<String, Object> msg = new HashMap<String, Object>();
-        msg.put(TartanParams.COMMAND, TartanParams.MSG_REDEEM_RSVP);
-        Vector<Reservation> reservations = new Vector<Reservation>();
-        Reservation reservation = Mockito.mock(Reservation.class);
-        Mockito.when(reservation.getIsPaid()).thenReturn(true);
-        reservations.add(reservation);
-        msg.put(TartanParams.PAYLOAD, reservations);
-        kioskService.handleMessage(msg);
-        Mockito.verify(window).redeemReservation(reservation);
-    }
+		Mockito.when(window.acceptPayment()).thenReturn(null).thenReturn(payment);
+		kioskService = Mockito.spy(new KioskService());
+		kioskService.setKiosk(window);
+	}
 
-    @org.junit.Test
-    public void sendPaymentInfo() throws Exception {
-    }
+	@org.junit.After
+	public void tearDown() throws Exception {
+	}
 
-    @org.junit.Test
-    public void makeNewReservation() throws Exception {
-    }
+	@org.junit.Test
+	public void reedemReservation() throws Exception {
+		HashMap<String, Object> msg = new HashMap<String, Object>();
 
-    @org.junit.Test
-    public void run() throws Exception {
-    }
+		// MSG_REDEEM_RSVP handle
+		// Already paid.
+		msg.put(TartanParams.COMMAND, TartanParams.MSG_REDEEM_RSVP);
+		Vector<Reservation> reservations = new Vector<Reservation>();
+		Reservation reservation = Mockito.mock(Reservation.class);
+		Mockito.when(reservation.getIsPaid()).thenReturn(true);
+		reservations.add(reservation);
+		msg.put(TartanParams.PAYLOAD, reservations);
+		kioskService.handleMessage(msg);
+		Mockito.verify(window).redeemReservation(reservation);
+		Mockito.verify(kioskService).sendMessage(Mockito.eq("ParkingService"), Mockito.any(HashMap.class));
+		Mockito.verify(kioskService).sendMessage(Mockito.eq("RsvpService"), Mockito.any(HashMap.class));
 
-    @org.junit.Test
-    public void finalize() throws Exception {
-    }
+		// Not Paid.
+		reservation = Mockito.mock(Reservation.class);
+		Mockito.when(reservation.getIsPaid()).thenReturn(false);
+		reservations.clear();
+		reservations.addElement(reservation);
+		msg.clear();
+		msg.put(TartanParams.COMMAND, TartanParams.MSG_REDEEM_RSVP);
+		msg.put(TartanParams.PAYLOAD, reservations);
+		kioskService.handleMessage(msg);
 
-    @org.junit.Test
-    public void getReservation() throws Exception {
-    }
+		// Reservation size larger than 1
+		int size = 5;
+		reservations.clear();
+		for (int i = 0; i < size; i++) {
+			reservations.addElement(Mockito.mock(Reservation.class));
+		}
+		msg.clear();
+		msg.put(TartanParams.COMMAND, TartanParams.MSG_REDEEM_RSVP);
+		msg.put(TartanParams.PAYLOAD, reservations);
+		kioskService.handleMessage(msg);
+	}
 
-    @org.junit.Test
-    public void setKiosk() throws Exception {
-    }
+	@org.junit.Test
+	public void sendPaymentInfo() throws Exception {
+		kioskService.sendPaymentInfo(payment);
+		Mockito.verify(kioskService).sendMessage(Mockito.eq("PaymentService"), Mockito.any(HashMap.class));
+	}
 
-    @org.junit.Test
-    public void terminate() throws Exception {
-    }
+	@org.junit.Test
+	public void makeNewReservation() throws Exception {
+		Reservation reservation = Mockito.mock(Reservation.class);
+		kioskService.makeNewReservation(reservation);
+		Mockito.verify(kioskService).sendMessage(Mockito.eq("RsvpService"), Mockito.any(HashMap.class));
+	}
+
+	@org.junit.Test
+	public void getReservation() throws Exception {
+		Assert.assertTrue(kioskService.getReservation("", null));
+		Mockito.verify(kioskService).sendMessage(Mockito.eq("RsvpService"), Mockito.any(HashMap.class));
+	}
+
+	@org.junit.Test
+	public void terminate() throws Exception {
+		kioskService.terminate();
+		Mockito.verify(kioskService).stop();
+	}
 
 }
