@@ -1,8 +1,5 @@
 package edu.cmu.tartan;
 
-import com.intellij.uiDesigner.core.GridConstraints;
-import com.intellij.uiDesigner.core.GridLayoutManager;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -14,7 +11,7 @@ public class AuthDialog extends JDialog {
     private JButton buttonCancel;
     private JTextField textField1;
     private JPasswordField passwordField1;
-    private ArrayList<String> mAuthlist;
+    private ArrayList<String> authList;
 
     public AuthDialog() {
         setContentPane(contentPane);
@@ -47,15 +44,15 @@ public class AuthDialog extends JDialog {
                 onCancel();
             }
         }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        mAuthlist = new ArrayList();
+        authList = new ArrayList();
 
     }
 
     private void onOK() {
         // add your code here
 
-        mAuthlist.add(textField1.getText());
-        mAuthlist.add(String.valueOf(passwordField1.getPassword()));
+        authList.add(textField1.getText());
+        authList.add(String.valueOf(passwordField1.getPassword()));
         dispose();
     }
 
@@ -73,7 +70,7 @@ public class AuthDialog extends JDialog {
     }
 
     public ArrayList getAuthList() {
-        return mAuthlist;
+        return authList;
     }
 
     {

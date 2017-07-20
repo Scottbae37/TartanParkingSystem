@@ -94,9 +94,9 @@ public class TartanKioskWindow extends JFrame {
                 authDialog.setModal(true);
                 authDialog.setVisible(true);
 
-                ArrayList authlist = authDialog.getAuthList();
-                if (authlist != null) {
-                    kioskService.authenicate(authlist);
+                ArrayList authList = authDialog.getAuthList();
+                if (authList != null) {
+                    kioskService.authenicate(authList);
                 }
             }
         });
