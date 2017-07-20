@@ -1,2 +1,9 @@
 *.eml
 .idea/*
+.classpath
+rsvp.txt
+TartanParkingSystem.userlibraries
+.metadata
+__MACOSX
+.project
+TartanGarage.iml
