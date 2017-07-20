@@ -8,3 +8,4 @@ __MACOSX
 .project
 TartanGarage.iml
 TartanParkingSystem.iml
+out/*
