@@ -14,7 +14,7 @@ public class AuthDialog extends JDialog {
     private JButton buttonCancel;
     private JTextField textField1;
     private JPasswordField passwordField1;
-    private ArrayList mAuthlist;
+    private ArrayList<String> mAuthlist;
 
     public AuthDialog() {
         setContentPane(contentPane);
@@ -55,7 +55,7 @@ public class AuthDialog extends JDialog {
         // add your code here
 
         mAuthlist.add(textField1.getText());
-        mAuthlist.add(passwordField1.getPassword());
+        mAuthlist.add(String.valueOf(passwordField1.getPassword()));
         dispose();
     }
 
@@ -73,7 +73,6 @@ public class AuthDialog extends JDialog {
     }
 
     public ArrayList getAuthList() {
-
         return mAuthlist;
     }
 

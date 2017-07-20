@@ -400,8 +400,6 @@ public class KioskService extends TartanService {
         HashMap<String,Object> message = new HashMap<String, Object>();
         message.put(TartanParams.COMMAND, TartanParams.MSG_AUTHENTICATE_ADMIN);
         message.put(TartanParams.PAYLOAD, authlist);
-
-        System.out.println("call send admin");
         sendMessage(AdminService.ADMIN_SERVICE, message);
         return true;
     }
