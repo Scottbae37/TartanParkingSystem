@@ -9,3 +9,5 @@ __MACOSX
 TartanGarage.iml
 TartanParkingSystem.iml
 out/*
+build
+.gradle
