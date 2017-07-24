@@ -21,6 +21,13 @@ sourceSets {
     }
 }
 
+test {
+    reports {
+        junitXml.enabled = true
+        html.enabled = true
+    }
+}
+
 repositories {
     jcenter()
 }
