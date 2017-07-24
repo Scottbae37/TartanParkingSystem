@@ -95,7 +95,7 @@ public class ReservationTest {
     }
 
     @Test
-    public void toString() throws Exception {
+    public void testToString() throws Exception {
     }
 
     @Test
@@ -103,7 +103,7 @@ public class ReservationTest {
     }
 
     @Test
-    public void hashCode() throws Exception {
+    public void testHashCode() throws Exception {
     }
 
 }
