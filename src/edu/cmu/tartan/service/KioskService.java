@@ -90,7 +90,20 @@ public class KioskService extends TartanService {
         }
         else if (cmd.equals(TartanParams.MSG_EXIT_COMPLETE)) {
             handleExitComplete(message);
+        }else if (cmd.equals(TartanParams.MSG_AUTHENTICATION_RESULT)) {
+            handleAuthResult(message);
         }
+    }
+
+    private void handleAuthResult(HashMap<String, Object> message) {
+        boolean authentication_result = (Boolean) message.get(TartanParams.PAYLOAD);
+        if(authentication_result){
+            //admin console dlg show up
+            //kiosk.showAdminConsole();
+        }else{
+            kiosk.showError("login fail...");
+        }
+
     }
 
     private void handleExitComplete(HashMap<String, Object> message) {

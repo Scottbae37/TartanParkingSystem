@@ -24,7 +24,13 @@ public class AdminService extends TartanService {
     public void handleMessage(HashMap<String, Object> message) {
         if (message.get(TartanParams.COMMAND).equals(TartanParams.MSG_AUTHENTICATE_ADMIN)) {
             ArrayList authlist = (ArrayList) message.get(TartanParams.PAYLOAD);
-            authenticate((String) authlist.get(0), (String) authlist.get(1));
+            boolean result = authenticate((String) authlist.get(0), (String) authlist.get(1));
+            System.out.println("login : "+result);
+
+            HashMap<String,Object> loginmessage = new HashMap<String, Object>();
+            loginmessage.put(TartanParams.COMMAND, TartanParams.MSG_AUTHENTICATION_RESULT);
+            loginmessage.put(TartanParams.PAYLOAD, result);
+            sendMessage(KioskService.KIOSK_SERVICE, loginmessage);
         }
     }
 
@@ -39,10 +45,6 @@ public class AdminService extends TartanService {
 
     }
 
-    private void handleCreateNewReservation(HashMap<String, Object> request) {
-
-
-    }
 
     public boolean authenticate(String id, String pwd) {
         System.out.println(" id : " + id + " pwd : " + pwd);

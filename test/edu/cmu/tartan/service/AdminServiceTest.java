@@ -4,8 +4,14 @@ import org.junit.*;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import javax.jms.MessageConsumer;
+import javax.jms.MessageProducer;
+import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -14,15 +20,37 @@ import java.util.HashMap;
  */
 
 
-@Ignore public class AdminServiceTest {
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({TartanServiceMessageBus.class, JOptionPane.class})
+public class AdminServiceTest {
     private AdminService adminService;
     private String adminId = "admin";
     private String adminPwd = "1qaz2wsx";
     private String adminPwdEncoded = "";
 
+    TartanServiceMessageBus msgBus;
+    MessageConsumer consumer;
+    MessageProducer producer;
+
     @Before
     public void setUp() throws Exception {
-        adminService = new AdminService();
+//        adminService = new AdminService();
+
+        msgBus = PowerMockito.mock(TartanServiceMessageBus.class);
+        consumer = PowerMockito.mock(MessageConsumer.class);
+        producer = PowerMockito.mock(MessageProducer.class);
+
+        PowerMockito.when(msgBus.getConsumer(TartanServiceMessageBus.TARTAN_TOPIC)).thenReturn(consumer);
+        PowerMockito.when(msgBus.getProducer(TartanServiceMessageBus.TARTAN_TOPIC)).thenReturn(producer);
+        PowerMockito.mockStatic(TartanServiceMessageBus.class);
+        PowerMockito.when(TartanServiceMessageBus.connect()).thenReturn(msgBus);
+        adminService = Mockito.spy(new AdminService());
+    }
+
+    @Test
+    public void run() throws Exception {
+        adminService.run();
+        Mockito.verify(adminService).run();
     }
 
     @After
@@ -76,13 +104,10 @@ import java.util.HashMap;
         message.put(TartanParams.PAYLOAD, authlist);
 
 
-        AdminService admin = Mockito.spy(adminService);
-
-
-        admin.handleMessage(message);
+        adminService.handleMessage(message);
 
         if (message.get(TartanParams.COMMAND).equals(TartanParams.MSG_AUTHENTICATE_ADMIN)) {
-            Mockito.verify(admin).authenticate((String) authlist.get(0), (String) authlist.get(1));
+            Mockito.verify(adminService).authenticate((String) authlist.get(0), (String) authlist.get(1));
         }
 
 
@@ -92,8 +117,6 @@ import java.util.HashMap;
     public void terminate() throws Exception {
     }
 
-    @Test
-    public void run() throws Exception {
-    }
+
 
 }
