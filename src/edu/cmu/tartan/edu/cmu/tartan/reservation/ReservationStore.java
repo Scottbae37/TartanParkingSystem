@@ -129,6 +129,10 @@ public class ReservationStore {
         }
     }
 
+    public void loadCumulativeReservations() throws Exception {
+
+    }
+
     /**
      * On shutdown, save the updated reservation list.
      */

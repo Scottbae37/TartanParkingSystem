@@ -47,6 +47,9 @@ public interface TartanParams {
     public static final String ACTUAL_SPOT = "ActualSpot";
     public static final String CUSTOMER = "Customer";
     public static final String VEHICLE = "Vehicle";
+    public static final String REVENUE = "Revenue";
+    public static final String AVERAGE_OCCUPANCY = "AverageOccupancy";
+    public static final String PEAK_USAGE_HOURS = "PeakUsageHours";
     //public static final String EXIT_STATE = "ExitState";
 
     // Symbolic constants for understandability

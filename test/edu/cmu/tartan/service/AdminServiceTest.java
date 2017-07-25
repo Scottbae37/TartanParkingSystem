@@ -93,7 +93,7 @@ public class AdminServiceTest {
     }
 
     @Test
-    public void handleMessage_CalledAuthenticateMethod_If_MSG_AUTHENTICATE_ADMIN() throws Exception {
+    public void handleMessage_CalledHandleAuthenticateMethod_If_MSG_AUTHENTICATE_ADMIN() throws Exception {
         ArrayList authlist = new ArrayList();
         authlist.add(adminId);
         authlist.add(adminPwd);
@@ -103,19 +103,58 @@ public class AdminServiceTest {
 
         adminService.handleMessage(message);
 
+        Mockito.verify(adminService).handleAuthenticate(message);
         Mockito.verify(adminService).authenticate((String) authlist.get(0), (String) authlist.get(1));
     }
 
     @Test
-    public void handleMessage_CalledGetStatisticalData_If_MSG_GET_STATISTICAL_DATA() throws Exception {
+    public void handleMessage_CalledHandleGetStatisticalData_If_MSG_GET_STATISTICAL_DATA() throws Exception {
         HashMap<String, Object> message = new HashMap<>();
         message.put(TartanParams.COMMAND, TartanParams.MSG_GET_STATISTICAL_DATA);
 
         adminService.handleMessage(message);
 
+        Mockito.verify(adminService).handleGetStatisticalData(message);
         Mockito.verify(adminService).getRevenue();
         Mockito.verify(adminService).getAverageOccupancy();
         Mockito.verify(adminService).getPeakUsageHours();
+    }
+
+    @Test
+    public void getRevenue_0_IfEmpty() throws Exception {
+        long revenue = adminService.getRevenue();
+        Assert.assertEquals(0, revenue);
+    }
+
+    @Test
+    public void getRevenue_Sum_IfNotEmpty() throws Exception {
+        //long revenue = adminService.getRevenue();
+        //Assert.assertNotEquals(0, revenue);
+    }
+
+    @Test
+    public void getAverageOccupancy_0_IfEmpty() throws Exception {
+        int averageOccupancy = adminService.getAverageOccupancy();
+        Assert.assertEquals(0, averageOccupancy);
+    }
+
+    @Test
+    public void getAverageOccupancy_0_IfNotEmpty() throws Exception {
+        //int averageOccupancy = adminService.getAverageOccupancy();
+        //Assert.assertNotEquals(0, averageOccupancy);
+    }
+
+
+    @Test
+    public void getPeakUsageHours_0_IfEmpty() throws Exception {
+        String peakUsageHours = adminService.getPeakUsageHours();
+        Assert.assertEquals("--:--", peakUsageHours);
+    }
+
+    @Test
+    public void getPeakUsageHours_Sum_IfNotEmpty() throws Exception {
+        //String peakUsageHours = adminService.getPeakUsageHours();
+        //Assert.assertNotEquals("--:--", peakUsageHours);
     }
 
     @Test

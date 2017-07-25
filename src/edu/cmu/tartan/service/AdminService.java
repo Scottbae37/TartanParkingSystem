@@ -1,12 +1,16 @@
 package edu.cmu.tartan.service;
 
 
+import edu.cmu.tartan.edu.cmu.tartan.reservation.Reservation;
+import edu.cmu.tartan.edu.cmu.tartan.reservation.ReservationStore;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.Vector;
 import java.util.prefs.Preferences;
 
 /**
@@ -16,31 +20,58 @@ public class AdminService extends TartanService {
 
     public final static String ADMIN_SERVICE = "AdminService";
     private Preferences prefs;
+    private Vector<Reservation> reservations = new Vector<>();
+    private ReservationStore rsvpStore;
+    private String configPath = null;
 
     public AdminService() {
         super.init(ADMIN_SERVICE);
         prefs = Preferences.userNodeForPackage(this.getClass());
         prefs.put("id", "admin");
         prefs.put("pwd", "BZoAGSWS1URLwMqtcgP5i1BjMuLPers11oTqm/fBjwg=");
+        rsvpStore = new ReservationStore(configPath);
     }
 
     @Override
     public void handleMessage(HashMap<String, Object> message) {
         final String command = (String) message.get(TartanParams.COMMAND);
-        HashMap<String, Object> resultMessage = new HashMap<>();
         switch (command) {
             case TartanParams.MSG_AUTHENTICATE_ADMIN:
-                ArrayList authlist = (ArrayList) message.get(TartanParams.PAYLOAD);
-                boolean isValid = authenticate((String) authlist.get(0), (String) authlist.get(1));
-                resultMessage.put(TartanParams.COMMAND, TartanParams.MSG_AUTHENTICATION_RESULT);
-                resultMessage.put(TartanParams.PAYLOAD, isValid);
+                handleAuthenticate(message);
                 break;
             case TartanParams.MSG_GET_STATISTICAL_DATA:
-                String revenue = getRevenue();
-                String averageOccupancy = getAverageOccupancy();
-                String peakUsageHours = getPeakUsageHours();
-                resultMessage.put(TartanParams.COMMAND, TartanParams.MSG_STATISTICAL_DATA_RESULT);
+                handleGetStatisticalData(message);
+                break;
+            default:
+                break;
         }
+    }
+
+    public void handleAuthenticate(HashMap<String, Object> message) {
+        HashMap<String, Object> resultMessage = new HashMap<>();
+        ArrayList authlist = (ArrayList) message.get(TartanParams.PAYLOAD);
+        boolean isValid = authenticate((String) authlist.get(0), (String) authlist.get(1));
+        resultMessage.put(TartanParams.COMMAND, TartanParams.MSG_AUTHENTICATION_RESULT);
+        resultMessage.put(TartanParams.PAYLOAD, isValid);
+        sendMessage(KioskService.KIOSK_SERVICE, resultMessage);
+    }
+
+    public void handleGetStatisticalData(HashMap<String, Object> message) {
+        try {
+            rsvpStore.loadCumulativeReservations();;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        reservations = rsvpStore.getReservations();
+
+        HashMap<String, Object> resultMessage = new HashMap<>();
+        Long revenue = getRevenue();
+        Integer averageOccupancy = getAverageOccupancy();
+        String peakUsageHours = getPeakUsageHours();
+        resultMessage.put(TartanParams.COMMAND, TartanParams.MSG_STATISTICAL_DATA_RESULT);
+        resultMessage.put(TartanParams.REVENUE, revenue);
+        resultMessage.put(TartanParams.AVERAGE_OCCUPANCY, averageOccupancy);
+        resultMessage.put(TartanParams.PEAK_USAGE_HOURS, peakUsageHours);
         sendMessage(KioskService.KIOSK_SERVICE, resultMessage);
     }
 
@@ -51,8 +82,11 @@ public class AdminService extends TartanService {
 
     @Override
     public void run() {
-
-
+        try {
+            rsvpStore.loadReservations();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -85,15 +119,20 @@ public class AdminService extends TartanService {
     }
 
 
-    public String getRevenue() {
-        return "1000";
+    public Long getRevenue() {
+        Long revenue = 0L;
+        for (Reservation r : reservations) {
+            revenue += r.getPayment().getFee();
+        }
+        return revenue;
     }
 
-    public String getAverageOccupancy() {
-        return "45";
+    public Integer getAverageOccupancy() {
+        return 0;
     }
 
     public String getPeakUsageHours() {
-        return "14:00";
+        return "--:--";
     }
+
 }
