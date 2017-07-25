@@ -67,13 +67,13 @@ public class ReservationStore {
     /**
      * Get the reservations for a given vehicle
      *
-     * @param name the id of the vehicle (license plate).
+     * @param vehicleId the id of the vehicle (license plate).
      * @return The list of reservations for a given vehicle.
      */
-    public Vector<Reservation> lookupByVehicle(String name) {
+    public Vector<Reservation> lookupByVehicle(String vehicleId) {
         Vector<Reservation> results = new Vector<Reservation>();
         for (Reservation r : reservations) {
-            if (r.getCustomerName().equals(name)) { /* FIXME: Maybe Copy & Paste bug, should check vehicle */
+            if (r.getVehicleID().equals(vehicleId)) {
                 results.add(r);
             }
         }
