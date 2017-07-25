@@ -76,8 +76,8 @@ public class ReservationServiceTest {
     @org.junit.Test
     public void verifyReservation() throws Exception {
         Reservation reservation = Mockito.mock(Reservation.class);
-        Mockito.when(reservation.getCustomerName()).thenReturn("");
-        Mockito.when(reservation.getVehicleID()).thenReturn("");
+        Mockito.when(reservation.getCustomerName()).thenReturn("UnitTest");
+        Mockito.when(reservation.getVehicleID()).thenReturn("UnitTest");
         Date startDate = Calendar.getInstance().getTime();
         Date endDate = new Date();
         startDate.setTime(startDate.getTime() + 1000 * 60 * 60);

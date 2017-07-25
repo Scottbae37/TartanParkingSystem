@@ -258,11 +258,11 @@ public class ReservationService extends TartanService {
         }
 
         // check other parameters
-        if (rsvp.getCustomerName() == null) {
+        if (rsvp.getCustomerName() == null || rsvp.getCustomerName().trim().isEmpty()) {
             return false;
         }
 
-        if (rsvp.getVehicleID() == null) {
+        if (rsvp.getVehicleID() == null || rsvp.getVehicleID().trim().isEmpty()) {
             return false;
         }
 
