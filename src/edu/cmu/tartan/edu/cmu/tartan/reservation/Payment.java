@@ -1,6 +1,13 @@
 package edu.cmu.tartan.edu.cmu.tartan.reservation;
 
 import java.io.Serializable;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Year;
+import java.time.YearMonth;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * Payments represent payment information, such as credit card number, expiration date
@@ -97,7 +104,36 @@ public class Payment implements Serializable {
      * @return true if valid, false otherwise
      */
     public Boolean isValid() {
-        return (ccNum != null && ccExpDate != null && ccName != null);
+
+        // original logic
+        if(ccNum == null || ccExpDate == null || ccName == null)
+            return false;
+
+        int localMonth = YearMonth.now().getMonthValue();
+        int localYear = Year.now().getValue();
+
+        // cardString returns like "January\2019"
+        String cardString = getCcExpDate().replace("\\", "-");
+        String[] parts = cardString.split("-");
+        String monthString = parts[0];
+        String yearString = parts[1];
+
+        Date date;
+        int cardMonth = 0;
+        int cardYear = Integer.parseInt(yearString);
+        try {
+            date = new SimpleDateFormat("MMM", Locale.ENGLISH).parse(monthString);
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(date);
+            cardMonth = cal.get(Calendar.MONTH) + 1;
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        if((cardYear > localYear) || (cardYear == localYear && cardMonth >= localMonth))
+            return true;
+
+        return false;
     }
 
     /**
