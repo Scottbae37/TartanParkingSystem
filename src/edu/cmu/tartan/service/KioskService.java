@@ -99,7 +99,7 @@ public class KioskService extends TartanService {
         boolean authentication_result = (Boolean) message.get(TartanParams.PAYLOAD);
         if(authentication_result){
             //admin console dlg show up
-            //kiosk.showAdminConsole();
+            kiosk.showAdminConsole();
         }else{
             kiosk.showError("login fail...");
         }
