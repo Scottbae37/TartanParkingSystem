@@ -58,16 +58,21 @@ public class ReservationServiceTest {
     public void newReservationHandleMeg() throws Exception {
         HashMap<String, Object> msg = new HashMap<String, Object>();
         Reservation reservation = Mockito.mock(Reservation.class);
+        Mockito.when(reservation.getCustomerName()).thenReturn("");
+        Mockito.when(reservation.getVehicleID()).thenReturn("");
+        Date normalStartDate = Calendar.getInstance().getTime();
+        Date normalEndDate = new Date();
+        normalStartDate.setTime(normalStartDate.getTime() + 1000 * 60 * 60);
+        normalEndDate.setTime(normalStartDate.getTime() + 1000 * 60 * 60);
+        Mockito.when(reservation.getStartTime()).thenReturn(normalStartDate);
+        Mockito.when(reservation.getEndTime()).thenReturn(normalEndDate);
         msg.put(TartanParams.PAYLOAD, reservation);
         msg.put(TartanParams.COMMAND, TartanParams.MSG_NEW_RSVP);
 
-        setDate(reservation, "Wed, Jul 26 11 AM 2017", "Wed, Jul 26 11 AM 2017");
-        //reservationService.handleMessage(msg);
-
+        reservationService.handleMessage(msg);
 
     }
 
-    @org.junit.Test
     public void verifyReservation() throws Exception {
         Reservation reservation = Mockito.mock(Reservation.class);
         Mockito.when(reservation.getCustomerName()).thenReturn("");
