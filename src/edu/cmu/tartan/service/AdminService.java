@@ -7,6 +7,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.prefs.Preferences;
 
 /**
  * Created by kyungman.yu on 2017-07-19.
@@ -14,24 +15,33 @@ import java.util.HashMap;
 public class AdminService extends TartanService {
 
     public final static String ADMIN_SERVICE = "AdminService";
-
+    private Preferences prefs;
 
     public AdminService() {
         super.init(ADMIN_SERVICE);
+        prefs = Preferences.userNodeForPackage(this.getClass());
+        prefs.put("id", "admin");
+        prefs.put("pwd", "BZoAGSWS1URLwMqtcgP5i1BjMuLPers11oTqm/fBjwg=");
     }
 
     @Override
     public void handleMessage(HashMap<String, Object> message) {
-        if (message.get(TartanParams.COMMAND).equals(TartanParams.MSG_AUTHENTICATE_ADMIN)) {
-            ArrayList authlist = (ArrayList) message.get(TartanParams.PAYLOAD);
-            boolean result = authenticate((String) authlist.get(0), (String) authlist.get(1));
-            System.out.println("login : "+result);
-
-            HashMap<String,Object> loginmessage = new HashMap<String, Object>();
-            loginmessage.put(TartanParams.COMMAND, TartanParams.MSG_AUTHENTICATION_RESULT);
-            loginmessage.put(TartanParams.PAYLOAD, result);
-            sendMessage(KioskService.KIOSK_SERVICE, loginmessage);
+        final String command = (String) message.get(TartanParams.COMMAND);
+        HashMap<String, Object> resultMessage = new HashMap<>();
+        switch (command) {
+            case TartanParams.MSG_AUTHENTICATE_ADMIN:
+                ArrayList authlist = (ArrayList) message.get(TartanParams.PAYLOAD);
+                boolean isValid = authenticate((String) authlist.get(0), (String) authlist.get(1));
+                resultMessage.put(TartanParams.COMMAND, TartanParams.MSG_AUTHENTICATION_RESULT);
+                resultMessage.put(TartanParams.PAYLOAD, isValid);
+                break;
+            case TartanParams.MSG_GET_STATISTICAL_DATA:
+                String revenue = getRevenue();
+                String averageOccupancy = getAverageOccupancy();
+                String peakUsageHours = getPeakUsageHours();
+                resultMessage.put(TartanParams.COMMAND, TartanParams.MSG_STATISTICAL_DATA_RESULT);
         }
+        sendMessage(KioskService.KIOSK_SERVICE, resultMessage);
     }
 
     @Override
@@ -47,14 +57,18 @@ public class AdminService extends TartanService {
 
 
     public boolean authenticate(String id, String pwd) {
-        System.out.println(" id : " + id + " pwd : " + pwd);
         String inputPwdEncoded = hashPassword(pwd);
         String adminAuth[] = getAdminAuth();
         return id.equals(adminAuth[0]) && inputPwdEncoded.equals(adminAuth[1]);
     }
 
     public String[] getAdminAuth() {
-        String adminAuth[] = {"admin", "BZoAGSWS1URLwMqtcgP5i1BjMuLPers11oTqm/fBjwg="};
+        String id = prefs.get("id", null);
+        String pwd = prefs.get("pwd", null);
+        if (id == null || pwd == null) {
+            return null;
+        }
+        String adminAuth[] = {id, pwd};
         return adminAuth;
     }
 
@@ -68,5 +82,18 @@ public class AdminService extends TartanService {
             e.printStackTrace();
         }
         return encoded;
+    }
+
+
+    public String getRevenue() {
+        return "1000";
+    }
+
+    public String getAverageOccupancy() {
+        return "45";
+    }
+
+    public String getPeakUsageHours() {
+        return "14:00";
     }
 }
