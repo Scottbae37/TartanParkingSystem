@@ -39,6 +39,8 @@ public interface TartanParams {
     public final static String MSG_WRONG_SPOT = "ParkingError";
     public final static String MSG_AUTHENTICATE_ADMIN = "AuthenticateAdmin";
     public final static String MSG_AUTHENTICATION_RESULT = "AuthenticateResult";
+    public final static String MSG_GET_STATISTICAL_DATA = "GetStatisticalData";
+    public final static String MSG_STATISTICAL_DATA_RESULT = "StatisticalDataResult";
 
     // Command specific parameters
     public static final String RSVP = "Rsvp";

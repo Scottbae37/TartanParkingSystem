@@ -34,8 +34,6 @@ public class AdminServiceTest {
 
     @Before
     public void setUp() throws Exception {
-//        adminService = new AdminService();
-
         msgBus = PowerMockito.mock(TartanServiceMessageBus.class);
         consumer = PowerMockito.mock(MessageConsumer.class);
         producer = PowerMockito.mock(MessageProducer.class);
@@ -47,18 +45,12 @@ public class AdminServiceTest {
         adminService = Mockito.spy(new AdminService());
     }
 
-    @Test
-    public void run() throws Exception {
-        adminService.run();
-        Mockito.verify(adminService).run();
-    }
-
     @After
     public void tearDown() throws Exception {
     }
 
     @Test
-    public void getAdminPassword() throws Exception {
+    public void getAdminPassword_Success_AlwaysMustBe() throws Exception {
         String encodedAdminPwd = adminService.hashPassword(adminPwd);
         String expected[] = {adminId, encodedAdminPwd};
         String adminAuth[] = adminService.getAdminAuth();
@@ -66,10 +58,17 @@ public class AdminServiceTest {
     }
 
     @Test
-    public void hashPassword() throws Exception {
+    public void hashPassword_Success_IfSha256() throws Exception {
         String pwd = "testPwd";
         String expected = "8kiTENvnwhY8jPnlzzEW9yKoHVSiw1WC+n++PMIBhBE=";
         Assert.assertEquals(expected, adminService.hashPassword(pwd));
+    }
+
+    @Test
+    public void hashPassword_Fail_IfIncorrectPwd() throws Exception {
+        String pwd = "test";
+        String expected = "8kiTENvnwhY8jPnlzzEW9yKoHVSiw1WC+n++PMIBhBE=";
+        Assert.assertNotEquals(expected, adminService.hashPassword(pwd));
     }
 
     @Test
@@ -94,8 +93,7 @@ public class AdminServiceTest {
     }
 
     @Test
-    public void handleMessage() throws Exception {
-
+    public void handleMessage_CalledAuthenticateMethod_If_MSG_AUTHENTICATE_ADMIN() throws Exception {
         ArrayList authlist = new ArrayList();
         authlist.add(adminId);
         authlist.add(adminPwd);
@@ -103,14 +101,21 @@ public class AdminServiceTest {
         message.put(TartanParams.COMMAND, TartanParams.MSG_AUTHENTICATE_ADMIN);
         message.put(TartanParams.PAYLOAD, authlist);
 
+        adminService.handleMessage(message);
+
+        Mockito.verify(adminService).authenticate((String) authlist.get(0), (String) authlist.get(1));
+    }
+
+    @Test
+    public void handleMessage_CalledGetStatisticalData_If_MSG_GET_STATISTICAL_DATA() throws Exception {
+        HashMap<String, Object> message = new HashMap<>();
+        message.put(TartanParams.COMMAND, TartanParams.MSG_GET_STATISTICAL_DATA);
 
         adminService.handleMessage(message);
 
-        if (message.get(TartanParams.COMMAND).equals(TartanParams.MSG_AUTHENTICATE_ADMIN)) {
-            Mockito.verify(adminService).authenticate((String) authlist.get(0), (String) authlist.get(1));
-        }
-
-
+        Mockito.verify(adminService).getRevenue();
+        Mockito.verify(adminService).getAverageOccupancy();
+        Mockito.verify(adminService).getPeakUsageHours();
     }
 
     @Test
