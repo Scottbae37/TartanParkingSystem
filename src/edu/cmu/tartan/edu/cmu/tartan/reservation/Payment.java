@@ -14,6 +14,9 @@ import java.io.Serializable;
  */
 public class Payment implements Serializable {
 
+    /** use serialVersionUID from JDK 1.0.2 for interoperability */
+    private static final long serialVersionUID = 1234L;
+
     /** Credit card number */
     private String ccNum = null;
 

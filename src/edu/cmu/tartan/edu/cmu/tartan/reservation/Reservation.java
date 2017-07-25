@@ -17,6 +17,9 @@ import java.util.Date;
  */
 public class Reservation implements Serializable{
 
+    /** use serialVersionUID from JDK 1.0.2 for interoperability */
+    private static final long serialVersionUID = 5678L;
+
     /** The start and end time for the reservation */
     private Date startTime, endTime;
 
@@ -107,7 +110,8 @@ public class Reservation implements Serializable{
      * @return the start time.
      */
     public Date getStartTime() {
-        return startTime;
+        Date tempStartTime = new Date(startTime.getTime());
+        return tempStartTime;
     }
 
     /**
@@ -116,7 +120,7 @@ public class Reservation implements Serializable{
      * @param startTime the start time as a Date.
      */
     public void setStartTime(Date startTime) {
-        this.startTime = startTime;
+        this.startTime = new Date(startTime.getTime());
     }
 
     /**
@@ -139,7 +143,8 @@ public class Reservation implements Serializable{
      * @return the end time.
      */
     public Date getEndTime() {
-        return endTime;
+        Date tempEndTime = new Date(endTime.getTime());
+        return tempEndTime;
     }
 
     /**
@@ -148,7 +153,7 @@ public class Reservation implements Serializable{
      * @param endTime the end time as a Date.
      */
     public void setEndTime(Date endTime) {
-        this.endTime = endTime;
+        this.endTime = new Date(endTime.getTime());
     }
 
     /**

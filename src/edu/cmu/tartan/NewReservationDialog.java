@@ -94,6 +94,8 @@ public class NewReservationDialog extends JDialog {
                 dayCb.addItem(formatter.format(date));
                 c.add(Calendar.DAY_OF_YEAR, 1);
             }
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
         }
     }

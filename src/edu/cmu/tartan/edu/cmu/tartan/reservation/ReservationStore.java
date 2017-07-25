@@ -1,8 +1,8 @@
 package edu.cmu.tartan.edu.cmu.tartan.reservation;
 
-import org.apache.camel.component.file.strategy.FileLockExclusiveReadLockStrategy;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -23,7 +23,7 @@ public class ReservationStore {
     /**
      * The flat file that contains all the reservations.
      */
-    private final String RESERVATION_STORE = "rsvp.txt";
+    private static final String RESERVATION_STORE = "rsvp.txt";
 
     /**
      * The path to the reservation database.
@@ -153,6 +153,8 @@ public class ReservationStore {
                 }
             }
 
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -203,6 +205,8 @@ public class ReservationStore {
 
             return true;
 
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
         }

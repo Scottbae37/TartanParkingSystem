@@ -83,11 +83,11 @@ public class ParkingService extends TartanService implements Observer {
     public Boolean connectToGarage(String houseAddress) {
         try {
             garageManager = new TartanGarageManager(TartanGarageConnection.getConnection(houseAddress));
-            if (garageManager != null) {
-                garageManager.addObserver(this); // for notifications
-                initialize();
-                return true;
-            }
+            garageManager.addObserver(this); // for notifications
+            initialize();
+            return true;
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) { }
 
         return false;

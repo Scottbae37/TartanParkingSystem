@@ -345,22 +345,6 @@ public class TartanGarageManager extends Observable {
     }
 
     /**
-     * Process new parking stall states.
-     *
-     * @param stateString The new states.
-     * @return a list of parking stall state information.
-     */
-    private ArrayList<Integer> processParkingSpots(String stateString) {
-
-        ArrayList<Integer> psState = new ArrayList<Integer>();
-        char[] c = stateString.toCharArray();
-        for (int i = 0; i < c.length; i++) {
-            psState.add(Integer.parseInt(String.valueOf(c[i])));
-        }
-        return psState;
-    }
-
-    /**
      * Issue command to set exit light.
      *
      * @param mode The mode for the exit light.

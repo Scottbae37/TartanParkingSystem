@@ -96,7 +96,6 @@ public class TartanServiceMessageBus {
                 }
 
                 subscriptions.remove(consumer.hashCode());
-                consumer = null;
             }
         } catch (final JMSException e) {
             e.printStackTrace();
