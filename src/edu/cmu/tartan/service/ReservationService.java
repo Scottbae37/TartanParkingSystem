@@ -394,9 +394,10 @@ import java.util.*;
                     Date et = r.getEndTime();
 
                     if (now.after(st) && now.before(et)) {
-                        if (r.getIsRedeemed() == false)
+                        if (r.getIsRedeemed() == false) {
                             System.err.println("Reservation not yet redeemed!");
-                            validReservations.add(r); /* FIXME: maybe error, only reservation which is not yet redeemed should be added to validReserv */
+                            validReservations.add(r);
+                        }
                     }
 
                 }
