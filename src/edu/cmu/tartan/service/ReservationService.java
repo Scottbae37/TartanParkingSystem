@@ -253,6 +253,9 @@ public class ReservationService extends TartanService {
         if ((start.getTime() - System.currentTimeMillis()) >= 604800000) {
             return false;
         }
+        if ((end.getTime() - System.currentTimeMillis()) >= 604800000) {
+            return false;
+        }
 
         // check other parameters
         if (rsvp.getCustomerName() == null) {
@@ -322,6 +325,8 @@ public class ReservationService extends TartanService {
 
                 return;
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         response.put(TartanParams.COMMAND, TartanParams.ERROR);
