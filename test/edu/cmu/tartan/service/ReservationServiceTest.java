@@ -174,6 +174,11 @@ public class ReservationServiceTest {
     public void confirmReservationHandleMeg() throws Exception {
         HashMap<String, Object> msg = new HashMap<String, Object>();
         Reservation reservation = Mockito.mock(Reservation.class);
+        Date startDate = Calendar.getInstance().getTime();
+        Date endDate = new Date();
+        startDate.setTime(startDate.getTime() + 1000 * 60 * 60);
+        endDate.setTime(startDate.getTime() + 1000 * 60 * 60);
+        setDate(reservation, startDate, endDate);
         msg.put(TartanParams.PAYLOAD, reservation);
         msg.put(TartanParams.COMMAND, TartanParams.MSG_CONFIRM_RSVP);
         reservationService.handleMessage(msg);
