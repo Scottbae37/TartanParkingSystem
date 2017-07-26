@@ -2,10 +2,7 @@ package edu.cmu.tartan.hardware;
 
 import edu.cmu.tartan.service.TartanParams;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Observable;
-import java.util.StringTokenizer;
+import java.util.*;
 
 /**
  * Manages connection and data flow to the Tartan Garage.
@@ -142,7 +139,9 @@ public class TartanGarageManager extends Observable {
      * @return True if command successfully executed, false otherwise.
      */
     public Boolean toggleExitGate(Boolean state) {
-
+        if (Objects.isNull(state)){
+            return Boolean.FALSE;
+        }
         StringBuffer msg = new StringBuffer();
         msg.append(TartanSensors.EXIT_GATE + TartanSensors.PARAM_EQ);
         if (state) {
