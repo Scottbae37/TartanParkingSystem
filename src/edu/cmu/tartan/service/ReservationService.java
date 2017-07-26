@@ -81,6 +81,10 @@ import java.util.*;
     public void handleMessage( HashMap<String, Object> message) {
         System.out.println("ReservationService.handleMessage");
 
+        if (Objects.isNull(message)) {
+            return;
+        }
+
         String cmd = (String) message.get(TartanParams.COMMAND);
 
         if (cmd.equals(TartanParams.MSG_NEW_RSVP)) {
