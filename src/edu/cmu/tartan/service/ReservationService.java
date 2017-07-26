@@ -7,28 +7,36 @@ import java.util.*;
 
 /**
  * Manages reservations for the system.
- *
+ * <p>
  * Project: LG Exec Ed SDET Program
  * Copyright: 2017 Jeffrey S. Gennari
  * Versions:
  * 1.0 November 2016 - initial version
  */
- public class ReservationService extends TartanService {
+public class ReservationService extends TartanService {
 
-    /** The service name */
+    /**
+     * The service name
+     */
     public final static String RESERVATION_SERVICE = "RsvpService";
 
-    /** The list of parking spots. */
+    /**
+     * The list of parking spots.
+     */
     ArrayList<Integer> parkingSpots = null;
 
-    /** The path to the reservation database */
+    /**
+     * The path to the reservation database
+     */
     private String configPath = null;
 
-    /** The reservation database adapter */
+    /**
+     * The reservation database adapter
+     */
     private ReservationStore rsvpStore;
 
     /**
-     *  The constructor for the service.
+     * The constructor for the service.
      *
      * @param cp the configuration to use.
      */
@@ -40,7 +48,7 @@ import java.util.*;
     }
 
     /**
-     *  Run the service. On startup query the parking service for available spots.
+     * Run the service. On startup query the parking service for available spots.
      */
     @Override
     public void run() {
@@ -52,10 +60,14 @@ import java.util.*;
             rsvpStore.loadReservations();
         } catch (Exception e) {
             e.printStackTrace();
+            HashMap<String, Object> response = new HashMap<String, Object>();
+            response.put(TartanParams.COMMAND, TartanParams.ERROR);
+            response.put(TartanParams.PAYLOAD, e.getMessage());
+            sendMessage(TartanParams.SOURCE_ID, response);
         }
 
         // Ask the parking service about capacity
-        HashMap<String,Object> body = new HashMap<String, Object>();
+        HashMap<String, Object> body = new HashMap<String, Object>();
         body.put(TartanParams.COMMAND, TartanParams.MSG_GET_PARKING_SPOTS);
         sendMessage(ParkingService.PARKING_SERVICE, body);
 
@@ -64,21 +76,21 @@ import java.util.*;
 
     /**
      * Handle reservation messages. the following messages are handled by the reservation service:
-     *
+     * <p>
      * <ul>
-     *     <li>MSG_NEW_RSVP: Handle a new reservation request.</li>
-     *     <li>MSG_CONFIRM_RSVP: Confirm a new reservation.</li>
-     *     <li>MSG_UPDATE_RSVP: Update an existing reservation.</li>
-     *     <li>MSG_GET_PARKING_SPOTS: Response to request for parking spots.</li>
-     *     <li>MSG_REDEEM_RSVP: Redeem a reservation.</li>
-     *     <li>MSG_GET_ALL_RSVP: Handle request to get all reservations.</li>
-     *     <li>MSG_COMPLETE_RSVP: Indicates a reservation is completed.</li>
+     * <li>MSG_NEW_RSVP: Handle a new reservation request.</li>
+     * <li>MSG_CONFIRM_RSVP: Confirm a new reservation.</li>
+     * <li>MSG_UPDATE_RSVP: Update an existing reservation.</li>
+     * <li>MSG_GET_PARKING_SPOTS: Response to request for parking spots.</li>
+     * <li>MSG_REDEEM_RSVP: Redeem a reservation.</li>
+     * <li>MSG_GET_ALL_RSVP: Handle request to get all reservations.</li>
+     * <li>MSG_COMPLETE_RSVP: Indicates a reservation is completed.</li>
      * </ul>
      *
      * @param message
      */
     @Override
-    public void handleMessage( HashMap<String, Object> message) {
+    public void handleMessage(HashMap<String, Object> message) {
         System.out.println("ReservationService.handleMessage");
 
         if (Objects.isNull(message)) {
@@ -89,25 +101,26 @@ import java.util.*;
 
         if (cmd.equals(TartanParams.MSG_NEW_RSVP)) {
             handleCreateNewReservation(message);
-        }
-        else if (cmd.equals(TartanParams.MSG_CONFIRM_RSVP)) {
+        } else if (cmd.equals(TartanParams.MSG_CONFIRM_RSVP)) {
             handleConfirmReservation(message);
-        }
-        else if (cmd.equals(TartanParams.MSG_UPDATE_RSVP)) {
+        } else if (cmd.equals(TartanParams.MSG_UPDATE_RSVP)) {
             handleUpdateReservation(message);
-        }
-        else if (cmd.equals(TartanParams.MSG_GET_PARKING_SPOTS)) {
+        } else if (cmd.equals(TartanParams.MSG_GET_PARKING_SPOTS)) {
             handleGetParkingSpotsMessage(message);
-        }
-        else if (cmd.equals(TartanParams.MSG_REDEEM_RSVP) ) {
+        } else if (cmd.equals(TartanParams.MSG_REDEEM_RSVP)) {
             handleRedeemReservation(message);
-        }
-        else if (cmd.equals(TartanParams.MSG_GET_ALL_RSVP)) {
+        } else if (cmd.equals(TartanParams.MSG_GET_ALL_RSVP)) {
             handleFetchAllReservations(message);
-        }
-        else if (cmd.equals(TartanParams.MSG_COMPLETE_RSVP)) {
+        } else if (cmd.equals(TartanParams.MSG_COMPLETE_RSVP)) {
             handleCompleteReservation(message);
+        } else if (cmd.equals(TartanParams.MSG_PAYMENT_COMPLETE)) {
+            handleCompletePayment(message);
         }
+    }
+
+    public void handleCompletePayment(HashMap<String, Object> message) {
+        Reservation rsvp = (Reservation) message.get(TartanParams.PAYLOAD);
+        rsvpStore.saveStaticsInfo(rsvp);
     }
 
     /**
@@ -128,8 +141,7 @@ import java.util.*;
             response.put(TartanParams.COMMAND, TartanParams.MSG_UPDATE_RSVP);
             rsvp.setSpotId(spot);
             response.put(TartanParams.PAYLOAD, rsvp);
-        }
-        else {
+        } else {
             response.put(TartanParams.COMMAND, TartanParams.ERROR);
             response.put(TartanParams.PAYLOAD, "Please call attendant for assistance!");
         }
@@ -170,7 +182,7 @@ import java.util.*;
      * @param payload The list of parking spots.
      */
     private void handleGetParkingSpotsMessage(HashMap<String, Object> payload) {
-        parkingSpots =  (ArrayList<Integer>) payload.get(TartanParams.PAYLOAD);
+        parkingSpots = (ArrayList<Integer>) payload.get(TartanParams.PAYLOAD);
     }
 
     /**
@@ -180,7 +192,6 @@ import java.util.*;
      * @param et1 End time for the first reservation.
      * @param st2 Start time for the second reservation.
      * @param et2 End time for the second reservation.
-     *
      * @return true if there is an overlap, false otherwise.
      */
     private Boolean isOverlapped(Date st1, Date et1, Date st2, Date et2) {
@@ -198,7 +209,7 @@ import java.util.*;
         Date newEt = newRsvp.getEndTime();
 
         // build a list of spots occupied at this time
-        for (Reservation r  : rsvpStore.getReservations()) {
+        for (Reservation r : rsvpStore.getReservations()) {
             Date st = r.getStartTime();
             Date et = r.getEndTime();
 
@@ -214,8 +225,7 @@ import java.util.*;
         // There are no spots available for this time
         else if (occupiedSpots.size() > parkingSpots.size()) { /* FIXME: Maybe logical error, Should use >= for fully occupied slots */
             return TartanParams.SPOT_UNAVAILABLE;
-        }
-        else {
+        } else {
             Collections.sort(occupiedSpots);
             spot = occupiedSpots.get(occupiedSpots.size() - 1) + 1; // get the next spot
         }
@@ -226,7 +236,6 @@ import java.util.*;
      * Verify a reservation. Verified reservation must meet various requirements
      *
      * @param rsvp The reservation to verify.
-     *
      * @return True if the reservation verified, false otherwise.
      */
     private Boolean verifyReservation(Reservation rsvp) {
@@ -242,7 +251,7 @@ import java.util.*;
         long difference = end.getTime() - start.getTime();
 
         // max reservation is 24 hours
-        if ((difference / (1000*60*60)) > 24) {
+        if ((difference / (1000 * 60 * 60)) > 24) {
             return false;
         }
 
@@ -252,16 +261,19 @@ import java.util.*;
         }
 
         // prevent reservations more than a week out
-        if ( (start.getTime() - System.currentTimeMillis()) >= 604800000) {
+        if ((start.getTime() - System.currentTimeMillis()) >= 604800000) {
+            return false;
+        }
+        if ((end.getTime() - System.currentTimeMillis()) >= 604800000) {
             return false;
         }
 
         // check other parameters
-        if (rsvp.getCustomerName() == null) {
+        if (rsvp.getCustomerName() == null || rsvp.getCustomerName().trim().isEmpty()) {
             return false;
         }
 
-        if (rsvp.getVehicleID() == null) {
+        if (rsvp.getVehicleID() == null || rsvp.getVehicleID().trim().isEmpty()) {
             return false;
         }
 
@@ -317,20 +329,20 @@ import java.util.*;
                 sendMessage((String) request.get(TartanParams.SOURCE_ID), response);
 
                 return;
-            }
-            else {
+            } else {
                 response.put(TartanParams.COMMAND, TartanParams.ERROR);
                 response.put(TartanParams.PAYLOAD, "Could not complete reservation");
-                sendMessage((String)request.get(TartanParams.SOURCE_ID), response);
+                sendMessage((String) request.get(TartanParams.SOURCE_ID), response);
 
                 return;
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        catch (Exception e) { e.printStackTrace(); }
 
         response.put(TartanParams.COMMAND, TartanParams.ERROR);
         response.put(TartanParams.PAYLOAD, "Unknown Error");
-        sendMessage((String)request.get(TartanParams.SOURCE_ID), response);
+        sendMessage((String) request.get(TartanParams.SOURCE_ID), response);
     }
 
     /**
@@ -381,13 +393,12 @@ import java.util.*;
             // prefer lookup by customer over license plate
             if (customer != null) {
                 results = rsvpStore.lookupByCustomer(customer);
-            }
-            else if (licensePlate != null) {
+            } else if (licensePlate != null) {
                 results = rsvpStore.lookupByVehicle(licensePlate);
             }
 
             // found reservation for this customer, now check that it is valid
-            if (results!= null && !results.isEmpty()) {
+            if (results != null && !results.isEmpty()) {
 
                 Vector<Reservation> validReservations = new Vector<Reservation>();
                 Date now = Calendar.getInstance().getTime();
@@ -417,14 +428,15 @@ import java.util.*;
 
                     return;
                 }
-            }
-            else {
+            } else {
                 errorMsg = "Cannot find reservation!";
             }
 
             // Can't find reservation!
 
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         response.put(TartanParams.COMMAND, TartanParams.ERROR);
         response.put(TartanParams.PAYLOAD, errorMsg);

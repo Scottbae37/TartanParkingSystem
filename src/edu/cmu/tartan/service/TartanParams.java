@@ -37,19 +37,24 @@ public interface TartanParams {
     public final static String MSG_ENTER_GARAGE = "EnterGarage";
     public final static String MSG_EXIT_GARAGE = "ExitGarage";
     public final static String MSG_WRONG_SPOT = "ParkingError";
-    public static final String MSG_AUTHENTICATE_ADMIN = "AuthenticateAdmin";
+    public final static String MSG_AUTHENTICATE_ADMIN = "AuthenticateAdmin";
+    public final static String MSG_AUTHENTICATION_RESULT = "AuthenticateResult";
+    public final static String MSG_GET_STATISTICAL_DATA = "GetStatisticalData";
+    public final static String MSG_STATISTICAL_DATA_RESULT = "StatisticalDataResult";
 
     // Command specific parameters
     public static final String RSVP = "Rsvp";
     public static final String ACTUAL_SPOT = "ActualSpot";
     public static final String CUSTOMER = "Customer";
     public static final String VEHICLE = "Vehicle";
+    public static final String REVENUE = "Revenue";
+    public static final String AVERAGE_OCCUPANCY = "AverageOccupancy";
+    public static final String PEAK_USAGE_HOURS = "PeakUsageHours";
     //public static final String EXIT_STATE = "ExitState";
 
     // Symbolic constants for understandability
     public static final Integer INVALID_SPOT = -1;
     public static final Integer SPOT_UNAVAILABLE = -2;
-
 
 }
 

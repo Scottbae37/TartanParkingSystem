@@ -268,4 +268,11 @@ public class TartanKioskWindow extends JFrame {
     public JComponent $$$getRootComponent$$$() {
         return mainPanel;
     }
+
+    public void showAdminConsole() {
+        AdminConsoleDialog paymentDialog = new AdminConsoleDialog();
+        paymentDialog.pack();
+        paymentDialog.setModal(true);
+        paymentDialog.setVisible(true);
+    }
 }

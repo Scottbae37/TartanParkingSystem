@@ -3,9 +3,11 @@ package edu.cmu.tartan.edu.cmu.tartan.reservation;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Vector;
@@ -24,6 +26,7 @@ public class ReservationStore {
      * The flat file that contains all the reservations.
      */
     private static final String RESERVATION_STORE = "rsvp.txt";
+    private static final String STATICS_STORE = "statics.txt";
 
     /**
      * The path to the reservation database.
@@ -67,13 +70,13 @@ public class ReservationStore {
     /**
      * Get the reservations for a given vehicle
      *
-     * @param name the id of the vehicle (license plate).
+     * @param vehicleId the id of the vehicle (license plate).
      * @return The list of reservations for a given vehicle.
      */
-    public Vector<Reservation> lookupByVehicle(String name) {
+    public Vector<Reservation> lookupByVehicle(String vehicleId) {
         Vector<Reservation> results = new Vector<Reservation>();
         for (Reservation r : reservations) {
-            if (r.getCustomerName().equals(name)) { /* FIXME: Maybe Copy & Paste bug, should check vehicle */
+            if (r.getVehicleID().equals(vehicleId)) {
                 results.add(r);
             }
         }
@@ -127,6 +130,10 @@ public class ReservationStore {
                 addReservation(reservation);
             }
         }
+    }
+
+    public void loadCumulativeReservations() throws Exception {
+
     }
 
     /**
@@ -189,7 +196,7 @@ public class ReservationStore {
             return false;
         }
 
-        try (BufferedWriter bw = Files.newBufferedWriter(Paths.get(settingsPath + File.separator + RESERVATION_STORE), StandardCharsets.UTF_8)){
+        try (BufferedWriter bw = Files.newBufferedWriter(Paths.get(settingsPath + File.separator + RESERVATION_STORE), StandardCharsets.UTF_8, StandardOpenOption.APPEND)) {
 
             DateFormat dateFormat = new SimpleDateFormat("yyyy:MM:dd:HH:mm");
 
@@ -224,6 +231,31 @@ public class ReservationStore {
             if (r.equals(rsvp)) {
                 r.setIsRedeemed(true);
             }
+        }
+    }
+
+    public void saveStaticsInfo(Reservation rsvp) {
+
+        Payment payment = rsvp.getPayment();
+
+        try (BufferedWriter bw = Files.newBufferedWriter(Paths.get(settingsPath + File.separator + STATICS_STORE), StandardCharsets.UTF_8, StandardOpenOption.APPEND)) {
+
+            DateFormat dateFormat = new SimpleDateFormat("yyyy:MM:dd:HH:mm");
+
+            //to convert Date to String, use format method of SimpleDateFormat class.
+            String startDate = dateFormat.format(rsvp.getStartTime());
+            String endDate = dateFormat.format(rsvp.getEndTime());
+            bw.write("name=" + rsvp.getCustomerName() +
+                    ",vehicle=" + rsvp.getVehicleID() +
+                    ",start= " + startDate + ",end=" + endDate +
+                    ",paid=" + String.valueOf(rsvp.getIsPaid()) +
+                    ",spot=" + rsvp.getSpotId().toString() +
+                    ",fee=" + payment.getFee().toString() + "\n");
+
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
