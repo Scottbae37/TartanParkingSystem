@@ -184,9 +184,11 @@ public class ReservationServiceTest {
     @org.junit.Test
     public void updateReservationHandleMeg() throws Exception {
         HashMap<String, Object> msg = new HashMap<String, Object>();
+        Vector<Reservation> reservations = new Vector<>();
         Reservation reservation = Mockito.mock(Reservation.class);
         msg.put(TartanParams.PAYLOAD, reservation);
         msg.put(TartanParams.COMMAND, TartanParams.MSG_UPDATE_RSVP);
+        Mockito.when(reservationStore.getReservations()).thenReturn(reservations);
         reservationService.handleMessage(msg);
         Mockito.verify(reservation).setSpotId(Mockito.anyInt());
         Mockito.verify(reservationService).sendMessage(Mockito.eq(KioskService.KIOSK_SERVICE), Mockito.any(HashMap.class));
