@@ -2,8 +2,8 @@ package edu.cmu.tartan.service;
 
 import edu.cmu.tartan.edu.cmu.tartan.reservation.Payment;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.Reservation;
+import edu.cmu.tartan.edu.cmu.tartan.reservation.ReservationStore;
 import org.junit.Assert;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -14,32 +14,35 @@ import org.powermock.reflect.Whitebox;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import java.io.PrintWriter;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Vector;
 
 /**
  * Created by chongjae.yoo on 2017-07-18.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(TartanServiceMessageBus.class)
+@PrepareForTest({TartanServiceMessageBus.class, ReservationService.class})
 public class ReservationServiceTest {
 
     TartanServiceMessageBus msgBus;
     MessageConsumer consumer;
     MessageProducer producer;
     ReservationService reservationService;
+    ReservationStore reservationStore;
 
     @org.junit.Before
     public void setUp() throws Exception {
         msgBus = PowerMockito.mock(TartanServiceMessageBus.class);
         consumer = PowerMockito.mock(MessageConsumer.class);
         producer = PowerMockito.mock(MessageProducer.class);
+        reservationStore = PowerMockito.mock(ReservationStore.class);
         PowerMockito.when(msgBus.getConsumer(TartanServiceMessageBus.TARTAN_TOPIC)).thenReturn(consumer);
         PowerMockito.when(msgBus.getProducer(TartanServiceMessageBus.TARTAN_TOPIC)).thenReturn(producer);
         PowerMockito.mockStatic(TartanServiceMessageBus.class);
         PowerMockito.when(TartanServiceMessageBus.connect()).thenReturn(msgBus);
+        PowerMockito.whenNew(ReservationStore.class).withArguments(Mockito.anyString()).thenReturn(reservationStore);
 
         reservationService = Mockito.spy(new ReservationService("./"));
         run();
@@ -164,14 +167,6 @@ public class ReservationServiceTest {
         Mockito.when(reservation.getEndTime()).thenReturn(end);
     }
 
-    private void setDate(Reservation reservation, String start, String end) throws Exception {
-        SimpleDateFormat parser = new SimpleDateFormat("EEE, MMM dd hh a yyyy");
-        Date startDate = parser.parse(start);
-        Date endDate = parser.parse(end);
-        Mockito.when(reservation.getStartTime()).thenReturn(startDate);
-        Mockito.when(reservation.getEndTime()).thenReturn(endDate);
-    }
-
     @org.junit.Test
     public void confirmReservationHandleMeg() throws Exception {
         HashMap<String, Object> msg = new HashMap<String, Object>();
@@ -207,8 +202,13 @@ public class ReservationServiceTest {
     @org.junit.Test
     public void redeemHandleMeg() throws Exception {
         HashMap<String, Object> msg = new HashMap<String, Object>();
+        Vector<Reservation> results = new Vector<>();
+        Reservation reservation = Mockito.mock(Reservation.class);
+        results.add(reservation);
+        msg.put(TartanParams.CUSTOMER, "UnitTest");
+        msg.put(TartanParams.VEHICLE, "UnitTest");
         msg.put(TartanParams.COMMAND, TartanParams.MSG_REDEEM_RSVP);
-
+        Mockito.when(reservationStore.lookupByCustomer(Mockito.anyString())).thenReturn(results);
 
         reservationService.handleMessage(msg);
     }
@@ -243,10 +243,8 @@ public class ReservationServiceTest {
         reservation.setPayment(payment);
 
 
-
         message.put(TartanParams.PAYLOAD, reservation);
         reservationService.handleMessage(message);
-
 
 
         Mockito.verify(reservationService).handleCompletePayment(message);
