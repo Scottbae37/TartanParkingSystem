@@ -1,7 +1,9 @@
 package edu.cmu.tartan.service;
 
+import edu.cmu.tartan.edu.cmu.tartan.reservation.Payment;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.Reservation;
 import org.junit.Assert;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -221,6 +223,35 @@ public class ReservationServiceTest {
     public void completeReservationHandleMeg() throws Exception {
         HashMap<String, Object> msg = new HashMap<String, Object>();
         msg.put(TartanParams.COMMAND, TartanParams.MSG_COMPLETE_RSVP);
+    }
+
+    @org.junit.Test
+    public void handleMessage_handleCompletePayment_If_MSG_PAYMENT_COMPLETE() throws Exception {
+        HashMap<String, Object> message = new HashMap<>();
+        message.put(TartanParams.COMMAND, TartanParams.MSG_PAYMENT_COMPLETE);
+        Reservation reservation = Mockito.mock(Reservation.class);
+
+        Date startDate = Calendar.getInstance().getTime();
+        Date endDate = new Date();
+        startDate.setTime(startDate.getTime() + 1000 * 60 * 60);
+        endDate.setTime(startDate.getTime() + 1000 * 60 * 60);
+        setDate(reservation, startDate, endDate);
+
+        Payment payment = Mockito.mock(Payment.class);
+        Mockito.when(reservation.getPayment()).thenReturn(payment);
+        Mockito.when(payment.getFee()).thenReturn(50L);
+        reservation.setPayment(payment);
+
+
+
+        message.put(TartanParams.PAYLOAD, reservation);
+        reservationService.handleMessage(message);
+
+
+
+        Mockito.verify(reservationService).handleCompletePayment(message);
+
+
     }
 
     @org.junit.Test

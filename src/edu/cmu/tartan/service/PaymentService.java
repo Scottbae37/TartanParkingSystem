@@ -128,6 +128,7 @@ public class PaymentService extends TartanService {
         response.put(TartanParams.PAYLOAD, rsvp);
 
         sendMessage((String) message.get(TartanParams.SOURCE_ID), response);
+        sendMessage(ReservationService.RESERVATION_SERVICE, response);
     }
 
     /**

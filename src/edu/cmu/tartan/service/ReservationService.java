@@ -109,7 +109,14 @@ public class ReservationService extends TartanService {
             handleFetchAllReservations(message);
         } else if (cmd.equals(TartanParams.MSG_COMPLETE_RSVP)) {
             handleCompleteReservation(message);
+        } else if (cmd.equals(TartanParams.MSG_PAYMENT_COMPLETE)) {
+            handleCompletePayment(message);
         }
+    }
+
+    public void handleCompletePayment(HashMap<String, Object> message) {
+        Reservation rsvp = (Reservation) message.get(TartanParams.PAYLOAD);
+        rsvpStore.saveStaticsInfo(rsvp);
     }
 
     /**
