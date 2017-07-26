@@ -1,8 +1,9 @@
 package edu.cmu.tartan.service;
 
+import edu.cmu.tartan.edu.cmu.tartan.reservation.Payment;
+import edu.cmu.tartan.edu.cmu.tartan.reservation.Reservation;
 import org.junit.*;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -11,9 +12,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.swing.*;
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 
 /**
  * Created by kyungman.yu on 2017-07-19.
@@ -115,45 +114,134 @@ public class AdminServiceTest {
         adminService.handleMessage(message);
 
         Mockito.verify(adminService).handleGetStatisticalData(message);
-        Mockito.verify(adminService).getRevenue();
-        Mockito.verify(adminService).getAverageOccupancy();
-        Mockito.verify(adminService).getPeakUsageHours();
+        //Mockito.verify(adminService).getRevenue(adminService.getReservations());
+        //Mockito.verify(adminService).getAverageOccupancy(adminService.getReservations());
+        //Mockito.verify(adminService).getPeakUsageHours(adminService.getReservations());
     }
 
     @Test
     public void getRevenue_0_IfEmpty() throws Exception {
-        long revenue = adminService.getRevenue();
+        Vector<Reservation> reservations = new Vector<>();
+        long revenue = adminService.getRevenue(reservations);
         Assert.assertEquals(0, revenue);
     }
 
     @Test
     public void getRevenue_Sum_IfNotEmpty() throws Exception {
-        //long revenue = adminService.getRevenue();
-        //Assert.assertNotEquals(0, revenue);
+        Vector<Reservation> reservations = new Vector<>();
+        ArrayList<Long> feeList = new ArrayList<>();
+        feeList.add(10L);
+        feeList.add(20L);
+        feeList.add(15L);
+
+        long expected = 0L;
+        for (Long fee : feeList) {
+            Reservation newReservation = new Reservation();
+            newReservation.setPayment(new Payment(fee));
+            reservations.add(newReservation);
+            expected += fee;
+        }
+
+        long revenue = adminService.getRevenue(reservations);
+        Assert.assertEquals(expected, revenue);
     }
 
     @Test
     public void getAverageOccupancy_0_IfEmpty() throws Exception {
-        int averageOccupancy = adminService.getAverageOccupancy();
-        Assert.assertEquals(0, averageOccupancy);
+        Vector<Reservation> reservations = new Vector<>();
+        HashMap<String, Integer> averageOccupancy = adminService.getAverageOccupancy(reservations);
+        Assert.assertEquals(0, averageOccupancy.size());
     }
 
     @Test
     public void getAverageOccupancy_0_IfNotEmpty() throws Exception {
-        //int averageOccupancy = adminService.getAverageOccupancy();
-        //Assert.assertNotEquals(0, averageOccupancy);
+        Vector<Reservation> reservations = new Vector<>();
+        ArrayList<ArrayList<String>> dateList = new ArrayList<>();
+        ArrayList<String> dateItem1 = new ArrayList<>();
+        dateItem1.add("2017:07:25:10:45");
+        dateItem1.add("2017:07:25:12:11");
+        dateList.add(dateItem1);
+
+        ArrayList<String> dateItem2 = new ArrayList<>();
+        dateItem2.add("2017:07:25:11:00");
+        dateItem2.add("2017:07:25:14:11");
+        dateList.add(dateItem2);
+
+        HashMap<String, Integer> occupancyMap = new HashMap<>();
+
+        for (ArrayList<String> date : dateList) {
+            Reservation newReservation = new Reservation();
+            newReservation.setStartTime(date.get(0));
+            newReservation.setEndTime(date.get(1));
+            reservations.add(newReservation);
+
+            Date startTime = newReservation.getStartTime();
+            Calendar calendar = GregorianCalendar.getInstance();
+            calendar.setTime(startTime);
+            int startHour = calendar.get(Calendar.HOUR_OF_DAY);
+            Date endTime = newReservation.getEndTime();
+            calendar.setTime(endTime);
+            int endHour = calendar.get(Calendar.HOUR_OF_DAY);
+            int usageHours = endHour - startHour + 1;
+            int year = calendar.get(Calendar.YEAR);
+            int month = calendar.get(Calendar.MONTH) + 1;
+            int day = calendar.get(Calendar.DAY_OF_MONTH);
+            String hashKey = String.valueOf(year) + ":";
+            if (month < 10) {
+                hashKey += "0";
+            }
+            hashKey +=  String.valueOf(month) + ":" + String.valueOf(day);
+            System.out.println("hashKey=" + hashKey);
+            int dailyCount = usageHours;
+            if (occupancyMap.get(hashKey) != null) {
+                dailyCount += occupancyMap.get(hashKey);
+            }
+            occupancyMap.put(hashKey, dailyCount);
+        }
+
+        HashMap<String, Integer> averageOccupancy = adminService.getAverageOccupancy(reservations);
+        int expected = occupancyMap.get("2017:07:25") * 100 / (24 * 4);
+        int actual = averageOccupancy.get("2017:07:25");
+        System.out.println("oracle - expected: " + expected + ", actual: " + actual);
+        Assert.assertEquals(expected, actual);
     }
 
 
     @Test
     public void getPeakUsageHours_0_IfEmpty() throws Exception {
-        String peakUsageHours = adminService.getPeakUsageHours();
-        Assert.assertEquals("--:--", peakUsageHours);
+        Vector<Reservation> reservations = new Vector<>();
+        ArrayList<Integer> peakUsageHours = adminService.getPeakUsageHours(reservations);
+        Assert.assertEquals(0, peakUsageHours.size());
     }
 
     @Test
-    public void getPeakUsageHours_Sum_IfNotEmpty() throws Exception {
-        //String peakUsageHours = adminService.getPeakUsageHours();
+    public void getPeakUsageHours_PeakUsageHoursList_IfNotEmpty() throws Exception {
+        Vector<Reservation> reservations = new Vector<>();
+        ArrayList<ArrayList<String>> dateList = new ArrayList<>();
+        ArrayList<String> dateItem1 = new ArrayList<>();
+        dateItem1.add("2017:07:25:10:45");
+        dateItem1.add("2017:07:25:12:11");
+        dateList.add(dateItem1);
+
+        ArrayList<String> dateItem2 = new ArrayList<>();
+        dateItem2.add("2017:07:25:11:00");
+        dateItem2.add("2017:07:25:14:11");
+        dateList.add(dateItem2);
+
+        HashMap<String, Integer> occupancyMap = new HashMap<>();
+
+        for (ArrayList<String> date : dateList) {
+            Reservation newReservation = new Reservation();
+            newReservation.setStartTime(date.get(0));
+            newReservation.setEndTime(date.get(1));
+            reservations.add(newReservation);
+        }
+        ArrayList<Integer> peakUsageHours = adminService.getPeakUsageHours(reservations);
+        System.out.println("peakUsageHours: " + peakUsageHours);
+        int expected[] = {11, 12};
+        //ArrayList<Integer> usageHoursList = new ArrayList<>(peakUsageHours.keySet());
+        Assert.assertEquals(expected[0], (int)peakUsageHours.get(0));
+        Assert.assertEquals(expected[1], (int)peakUsageHours.get(1));
         //Assert.assertNotEquals("--:--", peakUsageHours);
     }
 
