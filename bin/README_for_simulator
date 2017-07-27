@@ -1,0 +1,8 @@
+Run TartanGarageSimulator first before TartanParkingSystem GUI App.
+TartanGarageSimulator runs infinitely with localhost IP(127.0.0.1), port num(5050).
+
+- Detail snapshot for usage
+ URL: https://docs.google.com/document/d/18FR5sIxLUcg7SU0E76aZfXvvK2ZQxu0e5nJu_w_V6ak/edit?usp=sharing
+- How to run TartanGarageSimulator
+ cmd: java -jar TartanGarageSimulator.jar
+

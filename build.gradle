@@ -12,12 +12,12 @@ sourceCompatibility = 1.8
 sourceSets {
     main {
         java {
-            srcDirs 'src'
+            srcDirs 'src/main'
         }
     }
     test {
         java {
-            srcDirs 'test'
+            srcDirs 'src/test'
         }
     }
 }
