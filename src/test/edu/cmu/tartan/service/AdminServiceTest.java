@@ -1,5 +1,6 @@
 package edu.cmu.tartan.service;
 
+import com.sun.media.jfxmedia.logging.Logger;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.Payment;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.Reservation;
 import org.junit.*;
@@ -12,7 +13,10 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.swing.*;
+import java.io.IOException;
 import java.util.*;
+
+import static org.mockito.Matchers.any;
 
 /**
  * Created by kyungman.yu on 2017-07-19.
@@ -20,7 +24,7 @@ import java.util.*;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({TartanServiceMessageBus.class, JOptionPane.class})
+@PrepareForTest({TartanServiceMessageBus.class, JOptionPane.class, Logger.class})
 public class AdminServiceTest {
     private AdminService adminService;
     private String adminId = "admin";
@@ -89,6 +93,11 @@ public class AdminServiceTest {
         String id = adminId;
         String pwd = "invalidPwd";
         Assert.assertEquals(false, adminService.authenticate(id, pwd));
+    }
+
+    @Test (expected = NullPointerException.class)
+    public void handleMessage_NullPointerException_If_MessageIsNull() throws Exception {
+        adminService.handleMessage(null);
     }
 
     @Test
@@ -191,7 +200,6 @@ public class AdminServiceTest {
                 hashKey += "0";
             }
             hashKey +=  String.valueOf(month) + ":" + String.valueOf(day);
-            System.out.println("hashKey=" + hashKey);
             int dailyCount = usageHours;
             if (occupancyMap.get(hashKey) != null) {
                 dailyCount += occupancyMap.get(hashKey);
@@ -245,6 +253,12 @@ public class AdminServiceTest {
     public void terminate() throws Exception {
     }
 
-
+    @Test
+    public void loadAdminAuth_Exception_IfWrongPath() throws Exception {
+        PowerMockito.mockStatic(Logger.class);
+        adminService.loadAdminAuth("--");
+        PowerMockito.verifyStatic(Mockito.times(1));
+        Logger.logMsg(any(Integer.class), any(String.class));
+    }
 
 }
