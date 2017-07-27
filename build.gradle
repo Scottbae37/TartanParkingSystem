@@ -6,8 +6,11 @@ version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
 apply plugin: 'idea'
+apply plugin: 'jacoco'
 
 sourceCompatibility = 1.8
+buildDir = 'out'
+
 sourceSets {
     main {
         java {
@@ -24,6 +27,30 @@ sourceSets {
 test {
     reports {
         junitXml.enabled = true
+        html.enabled = true
+    }
+}
+
+jacoco {
+    reportsDir = file("${buildDir}/reports")
+}
+
+task coverageReport(type: JacocoReport, dependsOn: 'test') {
+    group = "Reporting"
+    description = "Generate Jacoco coverage reports"
+
+    def coverageSourceDirs = ['src/main']
+
+    classDirectories = fileTree(
+            dir: "${buildDir}/intermediates/classes/debug",
+            excludes: [ ]
+    )
+
+    sourceDirectories = files(coverageSourceDirs)
+    executionData = files("${buildDir}/jacoco/testDebugUnitTest.exec")
+
+    reports {
+        xml.enabled = true
         html.enabled = true
     }
 }
