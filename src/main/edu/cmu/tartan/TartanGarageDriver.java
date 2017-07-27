@@ -47,7 +47,7 @@ public class TartanGarageDriver {
         PaymentService paymentService = new PaymentService();
         services.add(paymentService);
 
-        AdminService adminService = new AdminService();
+        AdminService adminService = new AdminService(settings[0]);
         services.add(adminService);
 
         ReservationService reservationService = new ReservationService(settings[0]);

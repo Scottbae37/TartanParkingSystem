@@ -11,6 +11,7 @@ import java.awt.event.*;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 /**
  * Handle new reservations.
@@ -88,10 +89,11 @@ public class NewReservationDialog extends JDialog {
     private void populateDate(JComboBox dayCb) {
         try {
             Calendar c = Calendar.getInstance();
-            for (int i = 0; i <= 7; i++) {
+            for (int i = 0; i < 7; i++) {
                 Date date = c.getTime();
-                SimpleDateFormat formatter = new SimpleDateFormat("EEE, MMM dd");
+                SimpleDateFormat formatter = new SimpleDateFormat("EEE, MMM dd", Locale.ENGLISH);
                 dayCb.addItem(formatter.format(date));
+                System.out.println(formatter.format(date));
                 c.add(Calendar.DAY_OF_YEAR, 1);
             }
         } catch (RuntimeException e) {
@@ -124,7 +126,7 @@ public class NewReservationDialog extends JDialog {
             String customerName = nameTextField.getText();
             String licensePlate = licensePlateTextField.getText();
             String year = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
-            SimpleDateFormat parser = new SimpleDateFormat("EEE, MMM dd hh a yyyy");
+            SimpleDateFormat parser = new SimpleDateFormat("EEE, MMM dd hh a yyyy", Locale.ENGLISH);
 
             String start = String.valueOf(startDayComboBox.getSelectedItem()) + " " + String.valueOf(startTimeComboBox.getSelectedItem() + " " + year);
             System.out.println(start);

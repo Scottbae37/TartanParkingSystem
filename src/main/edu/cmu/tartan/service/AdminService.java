@@ -1,11 +1,17 @@
 package edu.cmu.tartan.service;
 
 
+import com.sun.media.jfxmedia.logging.Logger;
 import edu.cmu.tartan.MapUtil;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.Reservation;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.ReservationStore;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -16,18 +22,30 @@ import java.util.prefs.Preferences;
  */
 public class AdminService extends TartanService {
 
-    public final static String ADMIN_SERVICE = "AdminService";
+    public static final String ADMIN_SERVICE = "AdminService";
     private Preferences prefs;
     private Vector<Reservation> reservations = new Vector<>();
     private ReservationStore rsvpStore;
-    private String configPath = null;
+    private static final String RESERVATION_STORE = "keystore.txt";
 
-    public AdminService() {
+    public AdminService(String settingsPath) {
         super.init(ADMIN_SERVICE);
-        prefs = Preferences.userNodeForPackage(this.getClass());
-        prefs.put("id", "admin");
-        prefs.put("pwd", "BZoAGSWS1URLwMqtcgP5i1BjMuLPers11oTqm/fBjwg=");
-        rsvpStore = new ReservationStore(configPath);
+        loadAdminAuth(settingsPath);
+        rsvpStore = new ReservationStore(settingsPath);
+    }
+
+    public void loadAdminAuth(String settingsPath) {
+        try (BufferedReader br = Files.newBufferedReader(Paths.get(settingsPath + File.separator + RESERVATION_STORE), StandardCharsets.UTF_8)) {
+            String line;
+            if ((line = br.readLine()) != null) {
+                String[] entries = line.split(":");
+                prefs = Preferences.userNodeForPackage(this.getClass());
+                prefs.put("id", entries[0]);
+                prefs.put("pwd", entries[1]);
+            }
+        } catch (IOException e) {
+            Logger.logMsg(Logger.ERROR, e.getMessage());
+        }
     }
 
     @Override
@@ -45,20 +63,20 @@ public class AdminService extends TartanService {
         }
     }
 
-    public void handleAuthenticate(HashMap<String, Object> message) {
+    public void handleAuthenticate(Map<String, Object> message) {
         HashMap<String, Object> resultMessage = new HashMap<>();
-        ArrayList authlist = (ArrayList) message.get(TartanParams.PAYLOAD);
-        boolean isValid = authenticate((String) authlist.get(0), (String) authlist.get(1));
+        ArrayList authList = (ArrayList) message.get(TartanParams.PAYLOAD);
+        boolean isValid = authenticate((String) authList.get(0), (String) authList.get(1));
         resultMessage.put(TartanParams.COMMAND, TartanParams.MSG_AUTHENTICATION_RESULT);
         resultMessage.put(TartanParams.PAYLOAD, isValid);
         sendMessage(KioskService.KIOSK_SERVICE, resultMessage);
     }
 
-    public void handleGetStatisticalData(HashMap<String, Object> message) {
+    public void handleGetStatisticalData(Map<String, Object> message) {
         try {
-            rsvpStore.loadCumulativeReservations();;
+            rsvpStore.loadCumulativeReservations();
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.logMsg(Logger.ERROR, e.getMessage());
         }
         reservations = rsvpStore.getReservations();
 
@@ -74,15 +92,19 @@ public class AdminService extends TartanService {
     }
 
     @Override
-    public void terminate() {
-
+    public void run() {
+        try {
+            rsvpStore.loadCumulativeReservations();
+        } catch (Exception e) {
+            Logger.logMsg(Logger.ERROR, e.getMessage());
+        }
     }
 
     @Override
-    public void run() {
-
+    public void terminate() {
+        rsvpStore.shutdown();
+        stop();
     }
-
 
     public boolean authenticate(String id, String pwd) {
         String inputPwdEncoded = hashPassword(pwd);
@@ -192,7 +214,6 @@ public class AdminService extends TartanService {
             }
         }
         usageHours = MapUtil.sortByValue(usageHours);
-        System.out.println("usageHours="+usageHours);
         Integer peakHour = 0;
         ArrayList<Integer> usageHoursList = new ArrayList<>();
         for (Integer hour : usageHours.keySet()) {
@@ -202,7 +223,6 @@ public class AdminService extends TartanService {
             }
         }
 
-        System.out.println("usageHoursList="+usageHoursList);
         return usageHoursList;
     }
 
