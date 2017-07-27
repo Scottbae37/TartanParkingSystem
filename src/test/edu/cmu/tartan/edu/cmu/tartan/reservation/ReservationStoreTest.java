@@ -1,223 +1,298 @@
 package edu.cmu.tartan.edu.cmu.tartan.reservation;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Vector;
+import java.nio.file.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by jaeseung.bae on 7/17/2017.
  */
 @RunWith(PowerMockRunner.class)
+@PrepareForTest({ReservationStore.class, Files.class})
 public class ReservationStoreTest {
+
     private ReservationStore reservationStore;
+    private static BufferedReader bufferedReader;
+    private static BufferedWriter bufferedWriter;
+    private static DBReplacer dbReplacer;
+    private String customerName = "UnitTest";
+    private String vehicleId = "UnitTest";
+    private int numberOfSpot = 4;
+    private static Date initDate;
 
-    private static final String RESERVATION_STORE = "rsvp.txt";
-    private static final String STATICS_STORE = "statics.txt";
-
-    /**
-     * The path to the reservation database.
-     */
-    private final String settingsPath = "./";
-
-    private BufferedWriter bufferedWriter;
-    private BufferedWriter reservationWriter;
-    private BufferedWriter staticsWriter;
-    private BufferedReader bufferedReader;
-    private BufferedReader reservationReader;
-    private BufferedReader staticsReader;
+    @BeforeClass
+    public static void setUpForClass() {
+        initDate = Calendar.getInstance().getTime();
+    }
 
     @Before
     public void setUp() throws Exception {
-        reservationStore = PowerMockito.mock(ReservationStore.class);
-        PowerMockito.whenNew(ReservationStore.class).withArguments(Mockito.anyString()).thenReturn(reservationStore);
-
-
-        bufferedWriter = PowerMockito.mock(BufferedWriter.class);
-        PowerMockito.whenNew(BufferedWriter.class).withAnyArguments().thenReturn(bufferedWriter);
-
-        reservationWriter = Files.newBufferedWriter(Paths.get(settingsPath + File.separator + RESERVATION_STORE), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
-        staticsWriter = Files.newBufferedWriter(Paths.get(settingsPath + File.separator + STATICS_STORE), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
-
-
-        bufferedReader = PowerMockito.mock(BufferedReader.class);
-        PowerMockito.whenNew(BufferedReader.class).withAnyArguments().thenReturn(bufferedReader);
-
-        reservationReader = Files.newBufferedReader(Paths.get(settingsPath + File.separator + RESERVATION_STORE), StandardCharsets.UTF_8);
-        staticsReader = Files.newBufferedReader(Paths.get(settingsPath + File.separator + STATICS_STORE), StandardCharsets.UTF_8);
-
+        reservationStore = new ReservationStore("./");
+        dbReplacer = new DBReplacer();
+        bufferedReader = Mockito.mock(BufferedReader.class);
+        bufferedWriter = Mockito.mock(BufferedWriter.class);
+        PowerMockito.mockStatic(Files.class);
+        PowerMockito.when(Files.newBufferedReader(Mockito.any(Path.class), Mockito.any(Charset.class))).thenReturn(bufferedReader);
+        PowerMockito.when(Files.newBufferedWriter(Mockito.any(Path.class), Mockito.any(Charset.class), Mockito.any(OpenOption.class))).thenReturn(bufferedWriter);
+        PowerMockito.when(Files.newBufferedWriter(Mockito.any(Path.class), Mockito.any(Charset.class))).thenReturn(bufferedWriter);
+        Mockito.when(bufferedReader.readLine()).thenAnswer(new Answer<String>() {
+            public String answer(InvocationOnMock invocation) {
+                return dbReplacer.readLine();
+            }
+        });
     }
 
     @After
     public void tearDown() throws Exception {
+        dbReplacer.initPtr();
     }
 
     @Test
-    public void getReservations() throws Exception {
-//        fail("Intended Fail @ getReservations()");
+    public void addAndGetReservations() throws Exception {
+        Reservation reservation = Mockito.mock(Reservation.class);
+        Assert.assertTrue(reservationStore.getReservations().isEmpty());
+        reservationStore.addReservation(reservation);
+        Assert.assertTrue(reservationStore.getReservations().size() == 1);
     }
 
     @Test
     public void lookupByCustomer() throws Exception {
-//        fail("Intended Fail @ lookupByCustomer()");
+        Reservation reservation = Mockito.mock(Reservation.class);
+        Mockito.when(reservation.getCustomerName()).thenReturn(customerName);
+        reservationStore.addReservation(reservation);
+        for (Reservation res : reservationStore.lookupByCustomer(customerName)) {
+            Assert.assertTrue(customerName.equals(res.getCustomerName()));
+        }
     }
 
     @Test
     public void lookupByVehicle() throws Exception {
-//        fail("Intended Fail @ lookupByVehicle()");
-    }
-
-    @Test
-    public void addReservation() throws Exception {
-//        fail("Intended Fail @ addReservation()");
-    }
-
-    @Test
-    public void loadReservations() throws Exception {
-//        fail("Intended Fail @ loadReservations()");
-    }
-
-    @Test
-    public void shutdown() throws Exception {
-//        fail("Intended Fail @ shutdown()");
-    }
-
-    @Test
-    public void isDuplicate() throws Exception {
-//        fail("Intended Fail @ isDuplicate()");
+        Reservation reservation = Mockito.mock(Reservation.class);
+        Mockito.when(reservation.getVehicleID()).thenReturn(vehicleId);
+        reservationStore.addReservation(reservation);
+        for (Reservation res : reservationStore.lookupByVehicle(vehicleId)) {
+            Assert.assertTrue(vehicleId.equals(res.getVehicleID()));
+        }
     }
 
     @Test
     public void saveNewReservation() throws Exception {
-//        fail("Intended Fail @ saveNewReservation()");
+        for (Reservation reservation : getReservations(false)) {
+            reservationStore.addReservation(reservation);
+            assertTrue(reservationStore.saveNewReservation(reservation));
+        }
+        saveDBToMemory(false);
     }
 
     @Test
-    public void markReservationRedeemed() throws Exception {
-//        fail("Intended Fail @ markReservationRedeemed()");
-    }
-
-    @org.junit.Test
-    public void loadCumulativeReservationsTest() throws Exception {
-
-
-        Vector<Reservation> reservations = new Vector<>();
-
-        Reservation reserve = Mockito.mock(Reservation.class);
-
-        Reservation reservation = Mockito.mock(Reservation.class);
-
-
-        String line;
-        while ((line = staticsReader.readLine()) != null) { // one reservation per line
-
-            String[] entries = line.split(",");
-            for (String entry : entries) {
-
-                String[] item = entry.split("=");
-                String key = item[0];
-                String val = item[1];
-
-                if (key.equals("name")) {
-                    reservation.setCustomerName(val);
-                } else if (key.equals("start")) {
-                    reservation.setStartTime(val);
-                } else if (key.equals("end")) {
-                    reservation.setEndTime(val);
-                } else if (key.equals("vehicle")) {
-                    reservation.setVehicleID(val);
-                } else if (key.equals("spot")) {
-                    reservation.setSpotId(Integer.parseInt(val));
-                } else if (key.equals("paid")) {
-                    reservation.setIsPaid(Boolean.valueOf(val));
-                }
-            }
-
+    public void loadReservations() throws Exception {
+        saveNewReservation();
+        reservationStore.loadReservations();
+        ArrayList<Reservation> dumpReservation = getReservations(false);
+        Vector<Reservation> loadedReservation = reservationStore.getReservations();
+        for (int i = 0; i < numberOfSpot; i++) {
+            assertTrue(dumpReservation.get(i).getCustomerName().equals(loadedReservation.get(i).getCustomerName()));
+            assertTrue(dumpReservation.get(i).getVehicleID().equals(loadedReservation.get(i).getVehicleID()));
+            assertTrue(dumpReservation.get(i).getIsPaid() == loadedReservation.get(i).getIsPaid());
+            assertTrue(dumpReservation.get(i).getSpotId().equals(loadedReservation.get(i).getSpotId()));
+            assertTrue(dumpReservation.get(i).getStartTime().equals(loadedReservation.get(i).getStartTime()));
+            assertTrue(dumpReservation.get(i).getEndTime().equals(loadedReservation.get(i).getEndTime()));
         }
-        Mockito.when(reservationStore.getReservations()).thenReturn(reservations);
-        Mockito.verify(reservation).setSpotId(Mockito.anyInt());
-
     }
 
-    @org.junit.Test
-    public void saveStaticsInfoTest() throws Exception {
-
-        File mockFile = PowerMockito.mock(File.class);
-
-        PowerMockito.whenNew(File.class).withAnyArguments().thenReturn(mockFile);
-        mockFile = new File("./" + File.separator + "unit.txt");
-
-        FileWriter wr = PowerMockito.mock(FileWriter.class);
-        PowerMockito.whenNew(FileWriter.class).withAnyArguments().thenReturn(wr);
-        wr = new FileWriter(mockFile);
-        BufferedWriter bw = PowerMockito.mock(BufferedWriter.class);
-        PowerMockito.whenNew(BufferedWriter.class).withAnyArguments().thenReturn(bw);
-        bw = new BufferedWriter(wr);
-
+    @Test
+    public void shutdown() throws Exception {
         Reservation reservation = Mockito.mock(Reservation.class);
-
-        Mockito.when(reservation.getCustomerName()).thenReturn("unitname");
-        Mockito.when(reservation.getCustomerName()).thenReturn("unitvehicle");
-        Date startDate = Calendar.getInstance().getTime();
+        Date startDate = new Date();
         Date endDate = new Date();
+        startDate.setTime(initDate.getTime());
+        endDate.setTime(initDate.getTime());
         startDate.setTime(startDate.getTime() + 1000 * 60 * 60);
         endDate.setTime(startDate.getTime() + 1000 * 60 * 60);
         Mockito.when(reservation.getStartTime()).thenReturn(startDate);
         Mockito.when(reservation.getEndTime()).thenReturn(endDate);
+        Mockito.when(reservation.getIsRedeemed()).thenReturn(false);
+        reservationStore.addReservation(reservation);
+        reservationStore.shutdown();
 
-        Payment payment = Mockito.mock(Payment.class);
-        Mockito.when(reservation.getPayment()).thenReturn(payment);
-        Mockito.when(payment.getFee()).thenReturn(50L);
-        reservation.setPayment(payment);
+        ArgumentCaptor<String> writeMsg = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(bufferedWriter).write(writeMsg.capture());
+        assertTrue(writeMsg.getValue() != null && !writeMsg.getValue().equals(""));
+        dbReplacer.addReservation(writeMsg.getValue());
+    }
 
-        System.out.println("reservation.getCustomerName() = " + reservation.getCustomerName());
-        wr.write("name=" + reservation.getCustomerName() + ",vehicle=" + reservation.getVehicleID() + ",start= " + startDate + ",end=" + endDate + ",paid=" + String.valueOf(reservation.getIsPaid()) + ",spot=" + reservation.getSpotId().toString() + ",fee=" + reservation.getPayment().getFee().toString() + "\n");
+    @Test
+    public void isDuplicate() throws Exception {
+        Reservation reservation = Mockito.mock(Reservation.class);
+        Reservation reservation1 = Mockito.mock(Reservation.class);
+        assertFalse(reservationStore.isDuplicate(reservation));
+        reservationStore.addReservation(reservation);
+        assertTrue(reservationStore.isDuplicate(reservation));
+        assertFalse(reservationStore.isDuplicate(reservation1));
+    }
 
 
-        FileReader fr = PowerMockito.mock(FileReader.class);
-        PowerMockito.whenNew(FileReader.class).withAnyArguments().thenReturn(fr);
-        fr = new FileReader(mockFile);
+    @Test
+    public void markReservationRedeemed() throws Exception {
+        Reservation reservation = Mockito.mock(Reservation.class);
 
-        BufferedReader br = PowerMockito.mock(BufferedReader.class);
-        PowerMockito.whenNew(BufferedReader.class).withAnyArguments().thenReturn(br);
-        br = new BufferedReader(fr);
+        //Reservation is empty
+        reservationStore.markReservationRedeemed(Mockito.mock(Reservation.class));
 
 
-        String line;
-        while ((line = br.readLine()) != null) { // one reservation per line
+        reservationStore.addReservation(reservation);
 
-            String[] entries = line.split(",");
-            for (String entry : entries) {
+        //Not matched reservation
+        reservationStore.markReservationRedeemed(Mockito.mock(Reservation.class));
 
-                String[] item = entry.split("=");
-                String key = item[0];
-                String val = item[1];
+        //Matched reservation
+        reservationStore.markReservationRedeemed(reservation);
+        Mockito.verify(reservation).setIsRedeemed(true);
+    }
 
-                if (key.equals("name")) {
-                    assertEquals(reservation.getCustomerName(), val);
-                }
-                if (key.equals("vehicle")) {
-                    assertEquals(reservation.getVehicleID(), val);
-                }
-                if (key.equals("fee")) {
-                    assertEquals(reservation.getPayment().getFee(), val);
-                }
+
+    @org.junit.Test
+    public void saveStaticsInfoTest() throws Exception {
+        long i = 1000;
+        for (Reservation reservation : getReservations(true)) {
+            assertTrue(reservationStore.saveStaticsInfo(reservation));
+        }
+        saveDBToMemory(true);
+    }
+
+    @org.junit.Test
+    public void loadCumulativeReservations() throws Exception {
+        Mockito.when(bufferedReader.readLine()).thenAnswer(new Answer<String>() {
+            public String answer(InvocationOnMock invocation) {
+                return dbReplacer.readLineFromStatics();
+            }
+        });
+        saveStaticsInfoTest();
+        reservationStore.loadCumulativeReservations();
+        ArrayList<Reservation> dumpReservation = getReservations(true);
+        Vector<Reservation> loadedReservation = reservationStore.getReservations();
+        for (int i = 0; i < numberOfSpot; i++) {
+            assertTrue(dumpReservation.get(i).getCustomerName().equals(loadedReservation.get(i).getCustomerName()));
+            assertTrue(dumpReservation.get(i).getVehicleID().equals(loadedReservation.get(i).getVehicleID()));
+            assertTrue(dumpReservation.get(i).getIsPaid() == loadedReservation.get(i).getIsPaid());
+            assertTrue(dumpReservation.get(i).getSpotId().equals(loadedReservation.get(i).getSpotId()));
+            //assertTrue(dumpReservation.get(i).getStartTime().equals(loadedReservation.get(i).getStartTime()));
+            //assertTrue(dumpReservation.get(i).getEndTime().equals(loadedReservation.get(i).getEndTime()));
+            //assertTrue(dumpReservation.get(i).getPayment().getFee() == loadedReservation.get(i).getPayment().getFee());
+        }
+    }
+
+    private void saveDBToMemory(boolean isStatic) throws Exception {
+        ArgumentCaptor<String> writeMsg = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(bufferedWriter, Mockito.times(numberOfSpot)).write(writeMsg.capture());
+        List<String> capturedMsg = writeMsg.getAllValues();
+
+        for (String msg : capturedMsg) {
+            assertTrue(msg != null && !msg.equals(""));
+            if (isStatic) {
+                dbReplacer.addReservationToStatics(msg);
+            } else {
+                dbReplacer.addReservation(msg);
             }
         }
     }
+
+    private ArrayList<Reservation> getReservations(boolean isStatic) throws Exception {
+        ArrayList<Reservation> rets = new ArrayList<>();
+        DateFormat dateFormat = new SimpleDateFormat("yyyy:MM:dd:HH:mm");
+        for (int i = 0; i < numberOfSpot; i++) {
+            Reservation reservation = Mockito.mock(Reservation.class);
+            Date startDate = new Date();
+            Date endDate = new Date();
+            startDate.setTime(initDate.getTime());
+            endDate.setTime(initDate.getTime());
+            startDate.setTime(startDate.getTime() + 1000 * 60 * 60 * (i + 1));
+            endDate.setTime(startDate.getTime() + 1000 * 60 * 60 * (i + 1));
+            startDate.setSeconds(0);
+            endDate.setSeconds(0);
+            Mockito.when(reservation.getStartTime()).thenReturn(startDate);
+            Mockito.when(reservation.getEndTime()).thenReturn(endDate);
+            Mockito.when(reservation.getCustomerName()).thenReturn(customerName + i);
+            Mockito.when(reservation.getVehicleID()).thenReturn(vehicleId + i);
+            Mockito.when(reservation.getSpotId()).thenReturn(i);
+            if (i % 2 == 0) {
+                Mockito.when(reservation.getIsPaid()).thenReturn(true);
+            }
+            if (isStatic) {
+                Payment payment = Mockito.mock(Payment.class);
+                Mockito.when(payment.getFee()).thenReturn((long) i * 1000);
+                Mockito.when(reservation.getPayment()).thenReturn(payment);
+            }
+            rets.add(reservation);
+        }
+
+        return rets;
+    }
+}
+
+class DBReplacer {
+
+    private ArrayList<String> db;
+    private ArrayList<String> staticsDB;
+    private int ptr;
+    private int ptrForStatics;
+
+    public DBReplacer() {
+        db = new ArrayList<>();
+        staticsDB = new ArrayList<>();
+        ptr = 0;
+        ptrForStatics = 0;
+    }
+
+    public void addReservation(String msg) {
+        db.add(msg.trim());
+    }
+
+    public void addReservationToStatics(String msg) {
+        staticsDB.add(msg.trim());
+    }
+
+    public String readLine() {
+        if (db.size() == ptr) {
+            return null;
+        }
+        String ret = db.get(ptr);
+        ptr++;
+        return ret;
+    }
+
+    public String readLineFromStatics() {
+        if (staticsDB.size() == ptrForStatics) {
+            return null;
+        }
+        String ret = staticsDB.get(ptrForStatics);
+        ptrForStatics++;
+        return ret;
+    }
+
+    public void initPtr() {
+        ptr = 0;
+        ptrForStatics = 0;
+    }
+
 
 }
