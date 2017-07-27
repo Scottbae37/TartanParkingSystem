@@ -133,7 +133,39 @@ public class ReservationStore {
     }
 
     public void loadCumulativeReservations() throws Exception {
+        try (BufferedReader br = Files.newBufferedReader(Paths.get(settingsPath + File.separator + STATICS_STORE), StandardCharsets.UTF_8)) {
 
+            String line;
+            while ((line = br.readLine()) != null) { // one reservation per line
+                Reservation reservation = new Reservation();
+                String[] entries = line.split(",");
+                for (String entry : entries) {
+
+                    String[] item = entry.split("=");
+                    String key = item[0];
+                    String val = item[1];
+
+                    if (key.equals("name")) {
+                        reservation.setCustomerName(val);
+                    } else if (key.equals("start")) {
+                        reservation.setStartTime(val);
+                    } else if (key.equals("end")) {
+                        reservation.setEndTime(val);
+                    } else if (key.equals("vehicle")) {
+                        reservation.setVehicleID(val);
+                    } else if (key.equals("spot")) {
+                        reservation.setSpotId(Integer.parseInt(val));
+                    } else if (key.equals("paid")) {
+                        reservation.setIsPaid(Boolean.valueOf(val));
+                    } else if (key.equals("fee")) {
+                        Payment payment = new Payment();
+                        payment.setFee(Long.valueOf(val));
+                        reservation.setPayment(payment);
+                    }
+                }
+                addReservation(reservation);
+            }
+        }
     }
 
     /**
@@ -234,7 +266,7 @@ public class ReservationStore {
         }
     }
 
-    public void saveStaticsInfo(Reservation rsvp) {
+    public boolean saveStaticsInfo(Reservation rsvp) {
 
         Payment payment = rsvp.getPayment();
 
@@ -252,11 +284,13 @@ public class ReservationStore {
                     ",spot=" + rsvp.getSpotId().toString() +
                     ",fee=" + payment.getFee().toString() + "\n");
 
+            return true;
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return false;
     }
 }
 

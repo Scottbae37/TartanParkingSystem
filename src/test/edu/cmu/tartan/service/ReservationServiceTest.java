@@ -79,6 +79,24 @@ public class ReservationServiceTest {
     }
 
     @org.junit.Test
+    public void handleCompleteReservationTest() throws Exception{
+
+        Reservation reservation = Mockito.mock(Reservation.class);
+
+        Date startDate = Calendar.getInstance().getTime();
+        Date endDate = new Date();
+        startDate.setTime(startDate.getTime() + 1000 * 60 * 60);
+        endDate.setTime(startDate.getTime() + 1000 * 60 * 60);
+        setDate(reservation, startDate, endDate);
+
+        Payment payment = Mockito.mock(Payment.class);
+        Mockito.when(reservation.getPayment()).thenReturn(payment);
+        Mockito.when(payment.getFee()).thenReturn(50L);
+        reservation.setPayment(payment);
+        Mockito.when(reservationStore.saveStaticsInfo(reservation)).thenReturn(true);
+    }
+
+    @org.junit.Test
     public void verifyReservation() throws Exception {
         Reservation reservation = Mockito.mock(Reservation.class);
         Mockito.when(reservation.getCustomerName()).thenReturn("UnitTest");
