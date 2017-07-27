@@ -25,7 +25,6 @@ public class AdminServiceTest {
     private AdminService adminService;
     private String adminId = "admin";
     private String adminPwd = "1qaz2wsx";
-    private String adminPwdEncoded = "";
 
     TartanServiceMessageBus msgBus;
     MessageConsumer consumer;
@@ -112,11 +111,11 @@ public class AdminServiceTest {
         message.put(TartanParams.COMMAND, TartanParams.MSG_GET_STATISTICAL_DATA);
 
         adminService.handleMessage(message);
-
+        Vector<Reservation> reservations = adminService.getReservations();
         Mockito.verify(adminService).handleGetStatisticalData(message);
-        //Mockito.verify(adminService).getRevenue(adminService.getReservations());
-        //Mockito.verify(adminService).getAverageOccupancy(adminService.getReservations());
-        //Mockito.verify(adminService).getPeakUsageHours(adminService.getReservations());
+        Mockito.verify(adminService).getRevenue(reservations);
+        Mockito.verify(adminService).getAverageOccupancy(reservations);
+        Mockito.verify(adminService).getPeakUsageHours(reservations);
     }
 
     @Test
@@ -228,8 +227,6 @@ public class AdminServiceTest {
         dateItem2.add("2017:07:25:14:11");
         dateList.add(dateItem2);
 
-        HashMap<String, Integer> occupancyMap = new HashMap<>();
-
         for (ArrayList<String> date : dateList) {
             Reservation newReservation = new Reservation();
             newReservation.setStartTime(date.get(0));
@@ -239,10 +236,8 @@ public class AdminServiceTest {
         ArrayList<Integer> peakUsageHours = adminService.getPeakUsageHours(reservations);
         System.out.println("peakUsageHours: " + peakUsageHours);
         int expected[] = {11, 12};
-        //ArrayList<Integer> usageHoursList = new ArrayList<>(peakUsageHours.keySet());
         Assert.assertEquals(expected[0], (int)peakUsageHours.get(0));
         Assert.assertEquals(expected[1], (int)peakUsageHours.get(1));
-        //Assert.assertNotEquals("--:--", peakUsageHours);
     }
 
     @Test
