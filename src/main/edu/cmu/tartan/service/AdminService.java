@@ -121,27 +121,45 @@ public class AdminService extends TartanService {
         return revenue;
     }
 
-    public HashMap<String, Integer> getAverageOccupancy(Vector<Reservation> reservations) {
-        HashMap<String, Integer> occupancyMap = new HashMap<>();
-        for (Reservation reservation : reservations) {
-            Date startTime = reservation.getStartTime();
-            Calendar calendar = GregorianCalendar.getInstance();
-            calendar.setTime(startTime);
-            int startHour = calendar.get(Calendar.HOUR_OF_DAY);
-            Date endTime = reservation.getEndTime();
-            calendar.setTime(endTime);
-            int endHour = calendar.get(Calendar.HOUR_OF_DAY);
-            int usageHours = endHour - startHour + 1;
-            int year = calendar.get(Calendar.YEAR);
+    class DateUtil {
+        Calendar calendar;
+        DateUtil() {
+            calendar = GregorianCalendar.getInstance();
+        }
+
+        void setDate(Date date) {
+            calendar.setTime(date);
+        }
+
+        int getHourFromDate() {
+            return calendar.get(Calendar.HOUR_OF_DAY);
+        }
+
+        String getDate() {
+            int year = calendar.get(Calendar.YEAR);;
             int month = calendar.get(Calendar.MONTH) + 1;
             int day = calendar.get(Calendar.DAY_OF_MONTH);
-            String hashKey = String.valueOf(year) + ":";
+            String date = String.valueOf(year) + ":";
             if (month < 10) {
-                hashKey += "0";
+                date += "0";
             }
-            hashKey +=  String.valueOf(month) + ":" + String.valueOf(day);
+            date +=  String.valueOf(month) + ":" + String.valueOf(day);
+            return date;
+        }
+    }
+
+    public HashMap<String, Integer> getAverageOccupancy(Vector<Reservation> reservations) {
+        HashMap<String, Integer> occupancyMap = new HashMap<>();
+        int startHour, endHour, dailyCount;
+        DateUtil dateUtil = new DateUtil();
+        for (Reservation reservation : reservations) {
+            dateUtil.setDate(reservation.getStartTime());
+            startHour = dateUtil.getHourFromDate();
+            dateUtil.setDate(reservation.getEndTime());
+            endHour = dateUtil.getHourFromDate();
+            dailyCount = endHour - startHour + 1;
+            String hashKey = dateUtil.getDate();
             System.out.println("hashKey=" + hashKey);
-            int dailyCount = usageHours;
             if (occupancyMap.get(hashKey) != null) {
                 dailyCount += occupancyMap.get(hashKey);
             }
@@ -157,14 +175,13 @@ public class AdminService extends TartanService {
 
     public ArrayList<Integer> getPeakUsageHours(Vector<Reservation> reservations) {
         Map<Integer, Integer> usageHours = new HashMap<>();
+        int startHour, endHour;
+        DateUtil dateUtil = new DateUtil();
         for (Reservation reservation : reservations) {
-            Date startTime = reservation.getStartTime();
-            Calendar calendar = GregorianCalendar.getInstance();
-            calendar.setTime(startTime);
-            int startHour = calendar.get(Calendar.HOUR_OF_DAY);
-            Date endTime = reservation.getEndTime();
-            calendar.setTime(endTime);
-            int endHour = calendar.get(Calendar.HOUR_OF_DAY);
+            dateUtil.setDate(reservation.getStartTime());
+            startHour = dateUtil.getHourFromDate();
+            dateUtil.setDate(reservation.getEndTime());
+            endHour = dateUtil.getHourFromDate();
             for (int i = startHour; i <= endHour; i++) {
                 Integer value = usageHours.get(i);
                 Integer updatedValue = 1;
