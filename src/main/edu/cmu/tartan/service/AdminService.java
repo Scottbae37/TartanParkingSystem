@@ -1,7 +1,5 @@
 package edu.cmu.tartan.service;
 
-
-import com.sun.media.jfxmedia.logging.Logger;
 import edu.cmu.tartan.MapUtil;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.Reservation;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.ReservationStore;
@@ -15,13 +13,14 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 
 /**
  * Created by kyungman.yu on 2017-07-19.
  */
 public class AdminService extends TartanService {
-
+    private static final Logger LOGGER = Logger.getLogger(AdminService.class.getName());
     public static final String ADMIN_SERVICE = "AdminService";
     private Preferences prefs;
     private Vector<Reservation> reservations = new Vector<>();
@@ -44,7 +43,7 @@ public class AdminService extends TartanService {
                 prefs.put("pwd", entries[1]);
             }
         } catch (IOException e) {
-            Logger.logMsg(Logger.ERROR, e.getMessage());
+            LOGGER.warning(e.getMessage());
         }
     }
 
@@ -76,7 +75,7 @@ public class AdminService extends TartanService {
         try {
             rsvpStore.loadCumulativeReservations();
         } catch (Exception e) {
-            Logger.logMsg(Logger.ERROR, e.getMessage());
+            LOGGER.warning(e.getMessage());
         }
         reservations = rsvpStore.getReservations();
 
@@ -96,7 +95,7 @@ public class AdminService extends TartanService {
         try {
             rsvpStore.loadCumulativeReservations();
         } catch (Exception e) {
-            Logger.logMsg(Logger.ERROR, e.getMessage());
+            LOGGER.warning(e.getMessage());
         }
     }
 
