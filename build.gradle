@@ -9,6 +9,8 @@ apply plugin: 'idea'
 apply plugin: 'jacoco'
 
 sourceCompatibility = 1.8
+buildDir = 'out'
+
 sourceSets {
     main {
         java {
@@ -33,11 +35,11 @@ jacoco {
     reportsDir = file("${buildDir}/reports")
 }
 
-task coverageReport(type: JacocoReport, dependsOn: 'testDebugUnitTest') {
+task coverageReport(type: JacocoReport, dependsOn: 'test') {
     group = "Reporting"
     description = "Generate Jacoco coverage reports"
 
-    def coverageSourceDirs = ['src']
+    def coverageSourceDirs = ['src/main']
 
     classDirectories = fileTree(
             dir: "${buildDir}/intermediates/classes/debug",
