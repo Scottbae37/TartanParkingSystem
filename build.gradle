@@ -31,6 +31,27 @@ test {
     }
 }
 
+sonarqube {
+    properties {
+	        property "sonar.host.url", "https://sonarcloud.io"
+	        property "sonar.organization", "scottbae37-github"
+	        property "sonar.login", "21d657f93d671672f268b0fea3a50776657fb57e"
+	        property "sonar.jacoco.reportPath", "out/reports/test/html/"
+            property "sonar.coverage.exclusions", "**edu/cmu/tartan/AuthDialog**" +
+                ",**edu/cmu/tartan/AdminConsoleDialog**" +
+                ",**edu/cmu/tartan/NewReservationDialog**" +
+                ",**edu/cmu/tartan/PaymentDialog**" +
+                ",**edu/cmu/tartan/TartanKioskWindow**" +
+                ",**edu/cmu/tartan/TartanGarageDriver**" +
+                ",**edu/cmu/tartan/service/TartanServiceMessageBus**" +
+                ",**edu/cmu/tartan/hardware/TartanGarageConnection**" +
+                ",**edu/cmu/tartan/service/TartanParams**" +
+                ",**edu/cmu/tartan/hardware/TartanSensors**" +
+                ",**edu/cmu/tartan/reservation/Reservation.class" +
+                ",**edu/cmu/tartan/reservation/Payment**"
+    }
+}
+
 jacoco {
     reportsDir = file("${buildDir}/reports")
 }
@@ -63,4 +84,5 @@ dependencies {
     compile fileTree(dir: 'lib', include: '*.jar')
     testCompile group: 'junit', name: 'junit', version: '4.12'
     testCompile "org.mockito:mockito-core:1.+"
+    testCompile group: 'org.hamcrest', name: 'hamcrest-all', version: '1.3'
 }
