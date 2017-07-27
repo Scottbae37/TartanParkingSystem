@@ -31,6 +31,15 @@ test {
     }
 }
 
+sonarqube {
+    properties {
+	        property "sonar.host.url", "https://sonarcloud.io"
+	        property "sonar.organization", "scottbae37-github"
+	        property "sonar.login", "21d657f93d671672f268b0fea3a50776657fb57e"
+	        property "sonar.jacoco.reportPath", "out/reports/test/html/"
+    }
+}
+
 jacoco {
     reportsDir = file("${buildDir}/reports")
 }
