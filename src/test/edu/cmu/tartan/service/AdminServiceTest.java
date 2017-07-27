@@ -1,6 +1,5 @@
 package edu.cmu.tartan.service;
 
-import com.sun.media.jfxmedia.logging.Logger;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.Payment;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.Reservation;
 import org.junit.After;
@@ -24,7 +23,7 @@ import java.util.*;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({TartanServiceMessageBus.class, JOptionPane.class, Logger.class})
+@PrepareForTest({TartanServiceMessageBus.class, JOptionPane.class})
 public class AdminServiceTest {
     private AdminService adminService;
     private String adminId = "admin";
