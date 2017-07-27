@@ -5,7 +5,12 @@ import edu.cmu.tartan.MapUtil;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.Reservation;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.ReservationStore;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -20,14 +25,30 @@ public class AdminService extends TartanService {
     private Preferences prefs;
     private Vector<Reservation> reservations = new Vector<>();
     private ReservationStore rsvpStore;
-    private String configPath = null;
+    private String settingsPath = null;
+    private static final String RESERVATION_STORE = "keystore.txt";
 
-    public AdminService() {
+    public AdminService(String path) {
         super.init(ADMIN_SERVICE);
-        prefs = Preferences.userNodeForPackage(this.getClass());
-        prefs.put("id", "admin");
-        prefs.put("pwd", "BZoAGSWS1URLwMqtcgP5i1BjMuLPers11oTqm/fBjwg=");
-        rsvpStore = new ReservationStore(configPath);
+        settingsPath = path;
+        loadAdminAuth();
+        rsvpStore = new ReservationStore(settingsPath);
+    }
+
+    private void loadAdminAuth() {
+        try (BufferedReader br = Files.newBufferedReader(Paths.get(settingsPath + File.separator + RESERVATION_STORE), StandardCharsets.UTF_8)) {
+
+            String line;
+            if ((line = br.readLine()) != null) {
+                String[] entries = line.split(":");
+                prefs = Preferences.userNodeForPackage(this.getClass());
+                System.out.println("id=" + entries[0] + ", pwd=" + entries[1]);
+                prefs.put("id", entries[0]);
+                prefs.put("pwd", entries[1]);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

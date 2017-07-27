@@ -40,7 +40,8 @@ public class AdminServiceTest {
         PowerMockito.when(msgBus.getProducer(TartanServiceMessageBus.TARTAN_TOPIC)).thenReturn(producer);
         PowerMockito.mockStatic(TartanServiceMessageBus.class);
         PowerMockito.when(TartanServiceMessageBus.connect()).thenReturn(msgBus);
-        adminService = Mockito.spy(new AdminService());
+        String currentPath = new java.io.File( "." ).getCanonicalPath();
+        adminService = Mockito.spy(new AdminService(currentPath));
     }
 
     @After
