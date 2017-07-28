@@ -19,13 +19,19 @@ import java.util.concurrent.TimeUnit;
  */
 public class ParkingService extends TartanService implements Observer {
 
-    /** The name of this service */
+    /**
+     * The name of this service
+     */
     public final static String PARKING_SERVICE = "ParkingService";
 
-    /** connection to the garage */
+    /**
+     * connection to the garage
+     */
     private TartanGarageManager garageManager = null;
 
-    /** The list of reservations for vehicles in the garage */
+    /**
+     * The list of reservations for vehicles in the garage
+     */
     private Vector<Reservation> occupancy = new Vector<Reservation>();
 
     /**
@@ -38,7 +44,7 @@ public class ParkingService extends TartanService implements Observer {
     /**
      * Receive notifications (via an Observer) about vehicle entry/departure.
      *
-     * @param obs The element being observed.
+     * @param obs  The element being observed.
      * @param obj, The message from the observed element.
      */
     @Override
@@ -46,9 +52,8 @@ public class ParkingService extends TartanService implements Observer {
 
         String cmd = (String) obj;
         if (cmd.equals(TartanParams.MSG_VEHICLE_AT_ENTRY)) {
-           signalVehicleArrived();
-        }
-        else if (cmd.equals(TartanParams.MSG_VEHICLE_AT_EXIT)) {
+            signalVehicleArrived();
+        } else if (cmd.equals(TartanParams.MSG_VEHICLE_AT_EXIT)) {
             signalVehicleReadyToLeave();
         }
     }
@@ -58,8 +63,9 @@ public class ParkingService extends TartanService implements Observer {
      */
     private void signalVehicleReadyToLeave() {
 
-        HashMap<String,Object> body = new HashMap<String, Object>();
+        HashMap<String, Object> body = new HashMap<String, Object>();
         body.put(TartanParams.COMMAND, TartanParams.MSG_VEHICLE_AT_EXIT);
+        body.put(TartanParams.ACTUAL_SPOT, garageManager.getSpotOccupiedState());
         sendMessage(KioskService.KIOSK_SERVICE, body);
     }
 
@@ -68,8 +74,9 @@ public class ParkingService extends TartanService implements Observer {
      */
     private void signalVehicleArrived() {
 
-        HashMap<String,Object> body = new HashMap<String, Object>();
+        HashMap<String, Object> body = new HashMap<String, Object>();
         body.put(TartanParams.COMMAND, TartanParams.MSG_VEHICLE_AT_ENTRY);
+        body.put(TartanParams.ACTUAL_SPOT, garageManager.getSpotOccupiedState());
         sendMessage(KioskService.KIOSK_SERVICE, body);
     }
 
@@ -88,7 +95,8 @@ public class ParkingService extends TartanService implements Observer {
             return true;
         } catch (RuntimeException e) {
             throw e;
-        } catch (Exception e) { }
+        } catch (Exception e) {
+        }
 
         return false;
     }
@@ -103,7 +111,7 @@ public class ParkingService extends TartanService implements Observer {
         garageManager.closeExitGate();
 
         ArrayList<String> lightState = new ArrayList<String>();
-        for (int i=0; i < garageManager.getCapacity(); i++) {
+        for (int i = 0; i < garageManager.getCapacity(); i++) {
             lightState.add(TartanSensors.OFF);
         }
         garageManager.setParkingSpotLights(lightState);
@@ -130,8 +138,8 @@ public class ParkingService extends TartanService implements Observer {
     }
 
     /**
-     *  Allow a vehicle to enter by setting the entry light to green and opening the gate. If the assigned spot is taken
-     *  then handle updating the reservation.
+     * Allow a vehicle to enter by setting the entry light to green and opening the gate. If the assigned spot is taken
+     * then handle updating the reservation.
      *
      * @param rsvp The reservation associated with this entry.
      */
@@ -144,7 +152,7 @@ public class ParkingService extends TartanService implements Observer {
             if (occupiedStateCheck[spot] == 1) {
                 // The spot is already occupied. Try to update a new RSVP
 
-                HashMap<String,Object> body = new HashMap<String, Object>();
+                HashMap<String, Object> body = new HashMap<String, Object>();
                 body.put(TartanParams.COMMAND, TartanParams.MSG_UPDATE_RSVP);
 
                 rsvp.setSpotId(TartanParams.INVALID_SPOT);
@@ -155,14 +163,13 @@ public class ParkingService extends TartanService implements Observer {
             }
 
             garageManager.setEntryLight(TartanSensors.GREEN);
-            Integer[]  preParkState = garageManager.getSpotOccupiedState();
+            Integer[] preParkState = garageManager.getSpotOccupiedState();
             garageManager.openEntryGate();
 
             ArrayList<String> lightState = new ArrayList<String>();
 
-            for (int i=0; i < garageManager.getCapacity(); i++) {
-                if (i == spot)
-                    lightState.add(i,TartanSensors.ON);
+            for (int i = 0; i < garageManager.getCapacity(); i++) {
+                if (i == spot) lightState.add(i, TartanSensors.ON);
                 else {
                     lightState.add(i, TartanSensors.OFF);
                 }
@@ -180,10 +187,11 @@ public class ParkingService extends TartanService implements Observer {
             garageManager.closeEntryGate();
 
             // signal the entry is complete
-            HashMap<String,Object> body = new HashMap<String, Object>();
+            HashMap<String, Object> body = new HashMap<String, Object>();
             body.put(TartanParams.COMMAND, TartanParams.MSG_ENTRY_COMPLETE);
             body.put(TartanParams.PAYLOAD, rsvp);
             sendMessage(KioskService.KIOSK_SERVICE, body);
+
 
             // Now guide car to spot
             int timeout = 0;
@@ -193,37 +201,41 @@ public class ParkingService extends TartanService implements Observer {
                 occupiedState = garageManager.getSpotOccupiedState();
                 if (occupiedState[spot] == 1) {
                     parkedOK = true;
-                   break;
+                    break;
                 } else {
                     timeout++;
-                    try { Thread.sleep(1); } catch (Exception e) { }
+                    try {
+                        Thread.sleep(1);
+                    } catch (Exception e) {
+                    }
                 }
             }
 
             //  The driver parked in the wrong spot
             if (!parkedOK) {
                 Integer wrongSpot = TartanParams.INVALID_SPOT;
-                for (int i=0; i < preParkState.length; i++) {
-                    if (!preParkState[i].equals(occupiedState[i]) ) {
+                for (int i = 0; i < preParkState.length; i++) {
+                    if (!preParkState[i].equals(occupiedState[i])) {
                         wrongSpot = i;
                         break;
                     }
                 }
 
-                HashMap<String,Object> resp = new HashMap<String, Object>();
+
+                HashMap<String, Object> resp = new HashMap<String, Object>();
                 resp.put(TartanParams.COMMAND, TartanParams.MSG_WRONG_SPOT);
-                HashMap<String,Object> msg = new HashMap<String, Object>();
+                HashMap<String, Object> msg = new HashMap<String, Object>();
 
                 msg.put(TartanParams.RSVP, rsvp);
                 msg.put(TartanParams.ACTUAL_SPOT, wrongSpot);
-                resp.put(TartanParams.PAYLOAD,msg);
+                resp.put(TartanParams.PAYLOAD, msg);
 
                 sendMessage(KioskService.KIOSK_SERVICE, resp);
             }
 
             // parking spot occupied, turn off the lights
             ArrayList<String> offLightState = new ArrayList<String>();
-            for (int i=0; i < garageManager.getCapacity(); i++) {
+            for (int i = 0; i < garageManager.getCapacity(); i++) {
                 offLightState.add(TartanSensors.OFF);
             }
             garageManager.setParkingSpotLights(offLightState);
@@ -267,12 +279,12 @@ public class ParkingService extends TartanService implements Observer {
 
     /**
      * Handle Tartan service messages. The following messages are handled:
-     *
+     * <p>
      * <ul>
-     *     <li>MSG_GET_PARKING_SPOTS: Fetch the number of supported parking spots and their states.</li>
-     *     <li>MSG_ENTER_GARAGE: Handle garage entry.</li>
-     *     <li>MSG_EXIT_GARAGE: Handle garage exit.</li>
-     *     <li>MSG_UPDATE_RSVP: This message acknowledges that a reservation has been updated.</li>
+     * <li>MSG_GET_PARKING_SPOTS: Fetch the number of supported parking spots and their states.</li>
+     * <li>MSG_ENTER_GARAGE: Handle garage entry.</li>
+     * <li>MSG_EXIT_GARAGE: Handle garage exit.</li>
+     * <li>MSG_UPDATE_RSVP: This message acknowledges that a reservation has been updated.</li>
      * </ul>
      *
      * @param message
@@ -373,7 +385,7 @@ public class ParkingService extends TartanService implements Observer {
             }
         }
 
-        HashMap<String,Object> message = new HashMap<String, Object>();
+        HashMap<String, Object> message = new HashMap<String, Object>();
         message.put(TartanParams.COMMAND, TartanParams.MSG_MAKE_PAYMENT);
         message.put(TartanParams.PAYLOAD, rsvp);
 
@@ -388,7 +400,7 @@ public class ParkingService extends TartanService implements Observer {
      */
     private void handleGetParkingSpots(HashMap<String, ?> request) {
 
-        HashMap<String,Object> body = new HashMap<String, Object>();
+        HashMap<String, Object> body = new HashMap<String, Object>();
         body.put(TartanParams.COMMAND, TartanParams.MSG_GET_PARKING_SPOTS);
         body.put(TartanParams.PAYLOAD, garageManager.getParkingSpots());
 

@@ -6,6 +6,7 @@ import com.intellij.uiDesigner.core.Spacer;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.Payment;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.Reservation;
 import edu.cmu.tartan.service.KioskService;
+import edu.cmu.tartan.service.TartanParams;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,6 +14,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Locale;
 
 /**
@@ -43,6 +45,7 @@ public class TartanKioskWindow extends JFrame {
      * The kiosk service associated with this window
      */
     private KioskService kioskService = null;
+    private Integer[] spots;
 
     /**
      * Create a new kiosk window.
@@ -269,10 +272,17 @@ public class TartanKioskWindow extends JFrame {
         return mainPanel;
     }
 
-    public void showAdminConsole() {
-        AdminConsoleDialog paymentDialog = new AdminConsoleDialog();
-        paymentDialog.pack();
-        paymentDialog.setModal(true);
-        paymentDialog.setVisible(true);
+    public void showAdminConsole(HashMap<String, Object> message) {
+        message.put(TartanParams.ACTUAL_SPOT, spots);
+
+        AdminConsoleDialog adminConsoleDialog = new AdminConsoleDialog(message);
+        adminConsoleDialog.pack();
+        adminConsoleDialog.setModal(true);
+        adminConsoleDialog.setVisible(true);
+    }
+
+    public void setStatus(HashMap<String, Object> message) {
+        spots = (Integer[]) message.get(TartanParams.ACTUAL_SPOT);
+
     }
 }
