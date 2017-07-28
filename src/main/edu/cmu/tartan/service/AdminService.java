@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -26,6 +27,7 @@ public class AdminService extends TartanService {
     private Vector<Reservation> reservations = new Vector<>();
     private ReservationStore rsvpStore;
     private static final String RESERVATION_STORE = "keystore.txt";
+    private static final int SALT_SIZE = 32;
 
     public AdminService(String settingsPath) {
         super.init(ADMIN_SERVICE);
@@ -41,6 +43,7 @@ public class AdminService extends TartanService {
                 prefs = Preferences.userNodeForPackage(this.getClass());
                 prefs.put("id", entries[0]);
                 prefs.put("pwd", entries[1]);
+                prefs.put("salt", entries[2]);
             }
         } catch (IOException e) {
             LOGGER.warning(e.getMessage());
@@ -106,7 +109,8 @@ public class AdminService extends TartanService {
     }
 
     public boolean authenticate(String id, String pwd) {
-        String inputPwdEncoded = hashPassword(pwd);
+        byte[] salt = prefs.get("salt", null).getBytes(StandardCharsets.UTF_8);
+        String inputPwdEncoded = hashPassword(pwd, salt);
         String adminAuth[] = getAdminAuth();
         return id.equals(adminAuth[0]) && inputPwdEncoded.equals(adminAuth[1]);
     }
@@ -121,10 +125,19 @@ public class AdminService extends TartanService {
         return adminAuth;
     }
 
-    public String hashPassword(String pwd) {
+    public byte[] generateSalt() {
+        SecureRandom random = new SecureRandom();
+        byte bytes[] = new byte[SALT_SIZE];
+        random.nextBytes(bytes);
+        return bytes;
+    }
+
+    public String hashPassword(String pwd, byte[] salt) {
         String encoded = null;
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            digest.reset();
+            digest.update(salt);
             byte[] hash = digest.digest(pwd.getBytes(StandardCharsets.UTF_8));
             encoded = Base64.getEncoder().encodeToString(hash);
         } catch (NoSuchAlgorithmException e) {

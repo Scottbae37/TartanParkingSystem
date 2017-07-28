@@ -15,6 +15,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.swing.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -28,6 +29,7 @@ public class AdminServiceTest {
     private AdminService adminService;
     private String adminId = "admin";
     private String adminPwd = "1qaz2wsx";
+    private byte[] salt = "[B@70f43b45".getBytes(StandardCharsets.UTF_8);
 
     TartanServiceMessageBus msgBus;
     MessageConsumer consumer;
@@ -52,8 +54,14 @@ public class AdminServiceTest {
     }
 
     @Test
+    public void generateSalt() throws Exception {
+        byte[] salt = adminService.generateSalt();
+        System.out.println("salt=" + salt);
+    }
+
+    @Test
     public void getAdminPassword_Success_AlwaysMustBe() throws Exception {
-        String encodedAdminPwd = adminService.hashPassword(adminPwd);
+        String encodedAdminPwd = adminService.hashPassword(adminPwd, salt);
         String expected[] = {adminId, encodedAdminPwd};
         String adminAuth[] = adminService.getAdminAuth();
         Assert.assertArrayEquals(expected, adminAuth);
@@ -62,15 +70,17 @@ public class AdminServiceTest {
     @Test
     public void hashPassword_Success_IfSha256() throws Exception {
         String pwd = "testPwd";
-        String expected = "8kiTENvnwhY8jPnlzzEW9yKoHVSiw1WC+n++PMIBhBE=";
-        Assert.assertEquals(expected, adminService.hashPassword(pwd));
+        String expected = "dwQnhRR0D1if+4Yigmo0zAbqLNI0QlMqbz+TpBoe4CY=";
+        byte[] salt = "testSalt".getBytes(StandardCharsets.UTF_8);
+        Assert.assertEquals(expected, adminService.hashPassword(pwd, salt));
     }
 
     @Test
     public void hashPassword_Fail_IfIncorrectPwd() throws Exception {
         String pwd = "test";
-        String expected = "8kiTENvnwhY8jPnlzzEW9yKoHVSiw1WC+n++PMIBhBE=";
-        Assert.assertNotEquals(expected, adminService.hashPassword(pwd));
+        String expected = "dwQnhRR0D1if+4Yigmo0zAbqLNI0QlMqbz+TpBoe4CY=";
+        byte[] salt = "testSalt".getBytes(StandardCharsets.UTF_8);
+        Assert.assertNotEquals(expected, adminService.hashPassword(pwd, salt));
     }
 
     @Test
