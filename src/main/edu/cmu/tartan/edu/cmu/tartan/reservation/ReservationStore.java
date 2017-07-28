@@ -3,7 +3,6 @@ package edu.cmu.tartan.edu.cmu.tartan.reservation;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -224,7 +223,7 @@ public class ReservationStore {
      */
     public Boolean saveNewReservation(Reservation newRsvp) {
 
-        if (!isDuplicate(newRsvp)) {
+        if (isDuplicate(newRsvp)) {
             return false;
         }
 
