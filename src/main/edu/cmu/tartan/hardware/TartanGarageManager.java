@@ -22,7 +22,7 @@ public class TartanGarageManager extends Observable {
     /**
      * Thread to manage currentState updates
      */
-    private Thread updateThread = null;
+    protected Thread updateThread = null;
 
     /**
      * the currentState of the garage, updated every 5 seconds
@@ -112,8 +112,7 @@ public class TartanGarageManager extends Observable {
      * @param state True means open, false means close.
      * @return True if command successfully executed.
      */
-    private Boolean toggleEntryGate(Boolean state) {
-
+    private boolean toggleEntryGate(boolean state) {
         StringBuffer msg = new StringBuffer();
         msg.append(TartanSensors.ENTRY_GATE + TartanSensors.PARAM_EQ);
         if (state) {
@@ -138,10 +137,7 @@ public class TartanGarageManager extends Observable {
      * @param state True means open, false means close.
      * @return True if command successfully executed, false otherwise.
      */
-    public Boolean toggleExitGate(Boolean state) {
-        if (Objects.isNull(state)){
-            return Boolean.FALSE;
-        }
+    private boolean toggleExitGate(boolean state) {
         StringBuffer msg = new StringBuffer();
         msg.append(TartanSensors.EXIT_GATE + TartanSensors.PARAM_EQ);
         if (state) {
@@ -166,7 +162,7 @@ public class TartanGarageManager extends Observable {
      * @param state the list of parking stall lights.
      * @return True if command successfully executed, false otherwise.
      */
-    public Boolean setParkingSpotLights(ArrayList<String> state) {
+    public boolean setParkingSpotLights(ArrayList<String> state) {
 
         StringBuffer msg = new StringBuffer();
 
@@ -349,7 +345,7 @@ public class TartanGarageManager extends Observable {
      * @param mode The mode for the exit light.
      * @return True on success, false otherwise.
      */
-    public Boolean setExitLight(String mode) {
+    public boolean setExitLight(String mode) {
 
         String response = connection.sendMessageToGarage(TartanSensors.EXIT_LIGHT + TartanSensors.PARAM_EQ + mode + TartanSensors.MSG_END);
 
@@ -366,7 +362,7 @@ public class TartanGarageManager extends Observable {
      * @param mode The mode for the entry light.
      * @return True on success, false otherwise.
      */
-    public Boolean setEntryLight(String mode) {
+    public boolean setEntryLight(String mode) {
         String response = connection.sendMessageToGarage(TartanSensors.ENTRY_LIGHT + TartanSensors.PARAM_EQ + mode + TartanSensors.MSG_END);
 
         if (response == null) {
@@ -380,7 +376,6 @@ public class TartanGarageManager extends Observable {
      * This thread monitors the entry/exit gates.
      */
     public void startUpdateThread() {
-
         updateThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -440,13 +435,10 @@ public class TartanGarageManager extends Observable {
      * @param state The state of the Tartan Garage.
      * @return True if vehicle detected, false otherwise.
      */
-    private Boolean vehicleDetectedAtEntry(HashMap<String, Object> state) {
+    private boolean vehicleDetectedAtEntry(HashMap<String, Object> state) {
 
         if (state.containsKey(TartanSensors.ENTRY_IR)) {
-            Boolean gateState = (Boolean) state.get(TartanSensors.ENTRY_IR);
-            if (gateState) {
-                return true;
-            }
+            return ((Boolean) state.get(TartanSensors.ENTRY_IR)).booleanValue();
         }
         return false;
     }
@@ -457,12 +449,9 @@ public class TartanGarageManager extends Observable {
      * @param state The state of the Tartan Garage.
      * @return True if vehicle detected, false otherwise.
      */
-    private Boolean vehicleDetectedAtExit(HashMap<String, Object> state) {
+    private boolean vehicleDetectedAtExit(HashMap<String, Object> state) {
         if (state.containsKey(TartanSensors.EXIT_IR)) {
-            Boolean gateState = (Boolean) state.get(TartanSensors.EXIT_IR);
-            if (gateState) {
-                return true;
-            }
+            return ((Boolean) state.get(TartanSensors.EXIT_IR)).booleanValue();
         }
         return false;
     }
