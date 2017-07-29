@@ -3,9 +3,7 @@ package edu.cmu.tartan.service;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.Payment;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.Reservation;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
+import java.util.*;
 
 /**
  * The Payment is the Tartan service that manages payments.
@@ -23,6 +21,9 @@ public class PaymentService extends TartanService {
     private final Long WEEKEND_DAY_RATE = Long.valueOf(12);
     private final Long WEEKEND_NIGHT_RATE = Long.valueOf(8);
 
+    /** The value for calculating parking hours */
+    private final int MILLI_TO_HOUR = 1000 * 60 * 60;
+
     /** The rate for overstaying your reservation */
     private final Integer PENALTY_RATE = 20;
 
@@ -39,17 +40,45 @@ public class PaymentService extends TartanService {
         // status = TartanServiceStatus.STOPPED;
     }
 
-    private Long setRate() {
+    /** get reserved rates */
+    // ADDED to calculate various rates
+    private ArrayList<Long> getRates(Reservation rsvp) {
 
-        Date now = new Date();
+        ArrayList<Long> rates = new ArrayList<Long>();
+
+        Date startTime = rsvp.getStartTime();
+        Date endTime = rsvp.getEndTime();
+        Long rsvpDuration = (endTime.getTime() - startTime.getTime()) / MILLI_TO_HOUR;
+
         Calendar cal = Calendar.getInstance();
-        cal.setTime(now);
+        Date currentTime = startTime;
+
+        int maxDuration = (int)rsvpDuration.longValue();
+        for(int i = 1; i <= maxDuration; i++)
+        {
+            cal.setTime(currentTime);
+            Long rate = setRate(currentTime);
+            rates.add(rate);
+            currentTime = new Date(currentTime.getTime() + MILLI_TO_HOUR);
+        }
+
+        return rates;
+    }
+
+    /** set rates */
+    // CHANGED to get Date parameter
+    private Long setRate(Date date) {
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
 
         int day = cal.get(Calendar.DAY_OF_WEEK);
         int hour = cal.get(Calendar.HOUR_OF_DAY);
 
         boolean isWeekday = ((day >= Calendar.MONDAY) && (day <= Calendar.FRIDAY));
-        boolean isDaytime = ((hour >= 9) && (hour <= 17)); // day time is 9 AM to 5 PM
+
+        // FIXED about hour limit
+        boolean isDaytime = ((hour >= 9) && (hour < 17)); // day time is 9 AM to 5 PM
 
         if (isWeekday && isDaytime) {
             return WEEK_DAY_RATE;
@@ -140,9 +169,10 @@ public class PaymentService extends TartanService {
 
     private Long computeTotalFee(Reservation rsvp) {
 
-        Long rate = setRate();/* FIXME: Maybe error, Dynamic Rate should be applied based on time range in the reservation */
-
-        final int MILLI_TO_HOUR = 1000 * 60 * 60;
+        Long reservedFee = Long.valueOf(0);
+        ArrayList<Long> rates = getRates(rsvp);
+        for(int i = 0; i < rates.size(); i++)
+            reservedFee += rates.get(i);
 
         Date startTime = rsvp.getStartTime();
         Date endTime = rsvp.getEndTime();
@@ -152,7 +182,7 @@ public class PaymentService extends TartanService {
         Long totalDuration  = (now.getTime() - startTime.getTime()) / MILLI_TO_HOUR;
 
         // How long the reservation was scheduled for (hours)
-        Long rsvpDuration =  (endTime.getTime() - startTime.getTime()) / MILLI_TO_HOUR;
+        Long rsvpDuration = (endTime.getTime() - startTime.getTime()) / MILLI_TO_HOUR;
 
         // Did the total duration exceed the reserved period? If so, apply the penalty rate for the overage
         Long penaltyHours = Long.valueOf(0);
@@ -161,7 +191,7 @@ public class PaymentService extends TartanService {
         }
 
         // compute the standard fee for the reservation and the penalty
-        return (rate * rsvpDuration) + (penaltyHours * PENALTY_RATE);
+        return reservedFee + (penaltyHours * PENALTY_RATE);
     }
 
     /**
