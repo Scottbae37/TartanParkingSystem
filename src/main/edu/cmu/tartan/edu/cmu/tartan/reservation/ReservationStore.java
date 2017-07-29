@@ -223,7 +223,7 @@ public class ReservationStore {
      */
     public Boolean saveNewReservation(Reservation newRsvp) {
 
-        if (isDuplicate(newRsvp)) {
+        if (!isDuplicate(newRsvp)) {
             return false;
         }
 
