@@ -48,6 +48,8 @@ public class ReservationStore {
 
     public ReservationStore(String path) {
         settingsPath = path;
+        createFile(RESERVATION_STORE);
+        createFile(STATICS_STORE);
     }
 
     /**
@@ -171,7 +173,6 @@ public class ReservationStore {
      * On shutdown, save the updated reservation list.
      */
     public void shutdown() {
-
         try (BufferedWriter bw = Files.newBufferedWriter(Paths.get(settingsPath + File.separator + RESERVATION_STORE), StandardCharsets.UTF_8)) {
 
             DateFormat dateFormat = new SimpleDateFormat("yyyy:MM:dd:HH:mm");
@@ -290,6 +291,18 @@ public class ReservationStore {
             e.printStackTrace();
         }
         return false;
+    }
+
+    private void createFile(String fileName) {
+        File file = new File(settingsPath + File.separator + fileName);
+        if (file != null && !file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return;
+            }
+        }
     }
 }
 
