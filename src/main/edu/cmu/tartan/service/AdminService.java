@@ -1,7 +1,5 @@
 package edu.cmu.tartan.service;
 
-
-import com.sun.media.jfxmedia.logging.Logger;
 import edu.cmu.tartan.MapUtil;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.Reservation;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.ReservationStore;
@@ -14,19 +12,22 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 
 /**
  * Created by kyungman.yu on 2017-07-19.
  */
 public class AdminService extends TartanService {
-
+    private static final Logger LOGGER = Logger.getLogger(AdminService.class.getName());
     public static final String ADMIN_SERVICE = "AdminService";
     private Preferences prefs;
     private Vector<Reservation> reservations = new Vector<>();
     private ReservationStore rsvpStore;
     private static final String RESERVATION_STORE = "keystore.txt";
+    private static final int SALT_SIZE = 32;
 
     public AdminService(String settingsPath) {
         super.init(ADMIN_SERVICE);
@@ -42,9 +43,10 @@ public class AdminService extends TartanService {
                 prefs = Preferences.userNodeForPackage(this.getClass());
                 prefs.put("id", entries[0]);
                 prefs.put("pwd", entries[1]);
+                prefs.put("salt", entries[2]);
             }
         } catch (IOException e) {
-            Logger.logMsg(Logger.ERROR, e.getMessage());
+            LOGGER.warning(e.getMessage());
         }
     }
 
@@ -76,7 +78,7 @@ public class AdminService extends TartanService {
         try {
             rsvpStore.loadCumulativeReservations();
         } catch (Exception e) {
-            Logger.logMsg(Logger.ERROR, e.getMessage());
+            LOGGER.warning(e.getMessage());
         }
         reservations = rsvpStore.getReservations();
 
@@ -96,7 +98,7 @@ public class AdminService extends TartanService {
         try {
             rsvpStore.loadCumulativeReservations();
         } catch (Exception e) {
-            Logger.logMsg(Logger.ERROR, e.getMessage());
+            LOGGER.warning(e.getMessage());
         }
     }
 
@@ -107,7 +109,8 @@ public class AdminService extends TartanService {
     }
 
     public boolean authenticate(String id, String pwd) {
-        String inputPwdEncoded = hashPassword(pwd);
+        byte[] salt = prefs.get("salt", null).getBytes(StandardCharsets.UTF_8);
+        String inputPwdEncoded = hashPassword(pwd, salt);
         String adminAuth[] = getAdminAuth();
         return id.equals(adminAuth[0]) && inputPwdEncoded.equals(adminAuth[1]);
     }
@@ -122,10 +125,19 @@ public class AdminService extends TartanService {
         return adminAuth;
     }
 
-    public String hashPassword(String pwd) {
+    public byte[] generateSalt() {
+        SecureRandom random = new SecureRandom();
+        byte bytes[] = new byte[SALT_SIZE];
+        random.nextBytes(bytes);
+        return bytes;
+    }
+
+    public String hashPassword(String pwd, byte[] salt) {
         String encoded = null;
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            digest.reset();
+            digest.update(salt);
             byte[] hash = digest.digest(pwd.getBytes(StandardCharsets.UTF_8));
             encoded = Base64.getEncoder().encodeToString(hash);
         } catch (NoSuchAlgorithmException e) {

@@ -19,11 +19,16 @@ import java.util.Vector;
  */
 public class KioskService extends TartanService {
 
-    /** The service name */
+    /**
+     * The service name
+     */
     public final static String KIOSK_SERVICE = "KioskService";
 
-    /** A handle to the Kiosk Window */
+    /**
+     * A handle to the Kiosk Window
+     */
     private TartanKioskWindow kiosk = null;
+
 
     /**
      * Default constructor
@@ -37,7 +42,7 @@ public class KioskService extends TartanService {
 
     /**
      * The messages that the KioskService handles.
-     *
+     * <p>
      * <ul>
      * <li> MSG_REEDEEM_RSVP: Handle reservation redemption when customer arrives.</li>
      * <li> MSG_VEHICLE_AT_ENTRY: Vehicle detected at entry gate</li>
@@ -59,48 +64,52 @@ public class KioskService extends TartanService {
 
         if (cmd.equals(TartanParams.MSG_REDEEM_RSVP)) {
             handleRedeemReservation(message);
-        }
-        else if (cmd.equals(TartanParams.MSG_VEHICLE_AT_ENTRY)) {
+        } else if (cmd.equals(TartanParams.MSG_VEHICLE_AT_ENTRY)) {
+            kiosk.setStatus(message);
             kiosk.enableRsvpRedemption();
-        }
-        else if (cmd.equals(TartanParams.MSG_VEHICLE_AT_EXIT)) {
+        } else if (cmd.equals(TartanParams.MSG_VEHICLE_AT_EXIT)) {
+            kiosk.setStatus(message);
             handleParkingExit(message);
-        }
-        else if (cmd.equals(TartanParams.MSG_WRONG_SPOT)) {
+        } else if (cmd.equals(TartanParams.MSG_WRONG_SPOT)) {
             handleParkingError(message);
-        }
-        else if (cmd.equals(TartanParams.MSG_NEW_RSVP)) {
-           handleNewReservation(message);
-        }
-        else if (cmd.equals(TartanParams.MSG_UPDATE_RSVP)) {
+        } else if (cmd.equals(TartanParams.MSG_NEW_RSVP)) {
+            handleNewReservation(message);
+        } else if (cmd.equals(TartanParams.MSG_UPDATE_RSVP)) {
             handleUpdateReservation(message);
-        }
-        else if (cmd.equals(TartanParams.MSG_PAYMENT_VALID)) {
+        } else if (cmd.equals(TartanParams.MSG_PAYMENT_VALID)) {
             handlePaymentValid(message);
-        }
-        else if (cmd.equals(TartanParams.MSG_PAYMENT_INVALID)) {
+        } else if (cmd.equals(TartanParams.MSG_PAYMENT_INVALID)) {
             handlePaymentInvalid(message);
-        }
-        else if (cmd.equals(TartanParams.ERROR)) {
+        } else if (cmd.equals(TartanParams.ERROR)) {
             String errorMsg = (String) message.get(TartanParams.PAYLOAD);
             kiosk.showError(errorMsg);
-        }
-        else if (cmd.equals(TartanParams.MSG_ENTRY_COMPLETE)) {
+        } else if (cmd.equals(TartanParams.MSG_ENTRY_COMPLETE)) {
+
             kiosk.disableRsvpRedemption();
-        }
-        else if (cmd.equals(TartanParams.MSG_EXIT_COMPLETE)) {
+        } else if (cmd.equals(TartanParams.MSG_EXIT_COMPLETE)) {
             handleExitComplete(message);
-        }else if (cmd.equals(TartanParams.MSG_AUTHENTICATION_RESULT)) {
+        } else if (cmd.equals(TartanParams.MSG_AUTHENTICATION_RESULT)) {
             handleAuthResult(message);
+        } else if (cmd.equals(TartanParams.MSG_STATISTICAL_DATA_RESULT)) {
+            handleAdminConsole(message);
         }
     }
 
-    private void handleAuthResult(HashMap<String, Object> message) {
+    public void handleAdminConsole(HashMap<String, Object> message) {
+
+        kiosk.showAdminConsole(message);
+    }
+
+    public void handleAuthResult(HashMap<String, Object> message) {
         boolean authentication_result = (Boolean) message.get(TartanParams.PAYLOAD);
-        if(authentication_result){
+        if (authentication_result) {
             //admin console dlg show up
-            kiosk.showAdminConsole();
-        }else{
+
+            HashMap<String, Object> requestMessage = new HashMap<>();
+            requestMessage.put(TartanParams.COMMAND, TartanParams.MSG_GET_STATISTICAL_DATA);
+            sendMessage(AdminService.ADMIN_SERVICE, requestMessage);
+
+        } else {
             kiosk.showError("login fail...");
         }
 
@@ -121,7 +130,7 @@ public class KioskService extends TartanService {
 //            }
 //        }
 
-        String vid = JOptionPane.showInputDialog(kiosk, "Enter vehicle ID to exit", "Exit",JOptionPane.QUESTION_MESSAGE);
+        String vid = JOptionPane.showInputDialog(kiosk, "Enter vehicle ID to exit", "Exit", JOptionPane.QUESTION_MESSAGE);
 //        if (state == false) {
 //            vid =
 //        }
@@ -133,8 +142,7 @@ public class KioskService extends TartanService {
             sendMessage(ParkingService.PARKING_SERVICE, msg);
 
         } else {
-            JOptionPane.showMessageDialog(kiosk,
-                    "You must enter a valid vehicle ID", "Invalid Vehicle", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(kiosk, "You must enter a valid vehicle ID", "Invalid Vehicle", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -151,15 +159,14 @@ public class KioskService extends TartanService {
         Reservation rsvp = (Reservation) body.get(TartanParams.RSVP);
         Integer wrongSpot = (Integer) body.get(TartanParams.ACTUAL_SPOT);
 
-        buf.append("Vehicle " + rsvp.getVehicleID() + " parked in wrong spot.\nShould be in spot "
-                + rsvp.getSpotId() + " but is in spot " + wrongSpot);
+        buf.append("Vehicle " + rsvp.getVehicleID() + " parked in wrong spot.\nShould be in spot " + rsvp.getSpotId() + " but is in spot " + wrongSpot);
 
         kiosk.showError(buf.toString());
     }
 
     /**
-     *  Handle updating the reservation. This method handles the situation where the reservation must be changed,
-     *  for example, when the assigned spot is taken.
+     * Handle updating the reservation. This method handles the situation where the reservation must be changed,
+     * for example, when the assigned spot is taken.
      *
      * @param message the message.
      */
@@ -204,8 +211,7 @@ public class KioskService extends TartanService {
             sendMessage(ReservationService.RESERVATION_SERVICE, confirmation);
 
             kiosk.confirmReservation(payment.getReservation());
-        }
-        else {
+        } else {
             // if this was deferred payment, then proceed with redemption
             kiosk.redeemReservation(payment.getReservation());
 
@@ -224,7 +230,7 @@ public class KioskService extends TartanService {
      */
     public void sendPaymentInfo(Payment payment) {
 
-        HashMap<String,Object> message = new HashMap<String, Object>();
+        HashMap<String, Object> message = new HashMap<String, Object>();
         message.put(TartanParams.COMMAND, TartanParams.MSG_VALIDATE_PAYMENT);
         message.put(TartanParams.PAYLOAD, payment);
 
@@ -234,7 +240,7 @@ public class KioskService extends TartanService {
 
     public void makeNewReservation(Reservation rsvp) {
 
-        HashMap<String,Object> message = new HashMap<String, Object>();
+        HashMap<String, Object> message = new HashMap<String, Object>();
         message.put(TartanParams.COMMAND, TartanParams.MSG_NEW_RSVP);
         message.put(TartanParams.PAYLOAD, rsvp);
 
@@ -247,7 +253,7 @@ public class KioskService extends TartanService {
      *
      * @param message The incoming message.
      */
-    private void handleNewReservation(HashMap<String,Object> message) {
+    private void handleNewReservation(HashMap<String, Object> message) {
 
         Payment payment = kiosk.acceptPayment();
 
@@ -256,7 +262,7 @@ public class KioskService extends TartanService {
         if (payment == null) {
             rsvp.setIsPaid(false);
 
-            HashMap<String,Object> confirmation = new HashMap<String, Object>();
+            HashMap<String, Object> confirmation = new HashMap<String, Object>();
             confirmation.put(TartanParams.COMMAND, TartanParams.MSG_CONFIRM_RSVP);
             confirmation.put(TartanParams.PAYLOAD, rsvp);
 
@@ -264,8 +270,7 @@ public class KioskService extends TartanService {
             sendMessage(ReservationService.RESERVATION_SERVICE, confirmation);
             kiosk.confirmReservation(rsvp);
 
-        }
-        else {
+        } else {
             // Otherwise this reservation payment information is valid
             rsvp.setIsPaid(true);
             payment.setReservation(rsvp);
@@ -286,38 +291,31 @@ public class KioskService extends TartanService {
         Vector<Reservation> rsvps = (Vector<Reservation>) message.get(TartanParams.PAYLOAD);
         if (rsvps.isEmpty()) {
             kiosk.showError("Could not find reservation");
-        }
-        else if (rsvps.size() > 1) { // multiple Reservations for this person
+        } else if (rsvps.size() > 1) { // multiple Reservations for this person
 
             String[] values = new String[rsvps.size()];
-            for (int i=0; i< rsvps.size(); i++) {
+            for (int i = 0; i < rsvps.size(); i++) {
                 Reservation r = rsvps.elementAt(i);
-                values[i] = i + ": Name: " + r.getCustomerName() + ", Vehicle: " + r.getVehicleID()
-                              + ", " + r.getStartTime() + " to + " + r.getEndTime();
+                values[i] = i + ": Name: " + r.getCustomerName() + ", Vehicle: " + r.getVehicleID() + ", " + r.getStartTime() + " to + " + r.getEndTime();
             }
-            Object selected =
-                    JOptionPane.showInputDialog(null,
-                            "Select Reservation to Redeem?", "Redeem",
-                            JOptionPane.DEFAULT_OPTION, null, values, values[0]);
+            Object selected = JOptionPane.showInputDialog(null, "Select Reservation to Redeem?", "Redeem", JOptionPane.DEFAULT_OPTION, null, values, values[0]);
 
-            if ( selected != null ){
+            if (selected != null) {
                 char index = selected.toString().charAt(0);
                 selectedRsvp = rsvps.elementAt(Character.getNumericValue(index));
             }
-        }
-        else {
+        } else {
             // only one reservation.
             selectedRsvp = rsvps.elementAt(0);
         }
-        if (selectedRsvp == null){
+        if (selectedRsvp == null) {
             return;
         }
         selectedRsvp.setIsRedeemed(true);
 
         // if the reservation has not been paid for, then pay for it now.
         if (selectedRsvp.getIsPaid() == false) {
-            JOptionPane.showMessageDialog(kiosk,
-                    "You must pay for this reservation now","Payment Required", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(kiosk, "You must pay for this reservation now", "Payment Required", JOptionPane.INFORMATION_MESSAGE);
 
             Payment payment = kiosk.acceptPayment();
 
@@ -333,8 +331,7 @@ public class KioskService extends TartanService {
 
             sendPaymentInfo(payment);
 
-        }
-        else {
+        } else {
             kiosk.redeemReservation(selectedRsvp);
 
             HashMap<String, Object> msg = new HashMap<String, Object>();
@@ -343,7 +340,7 @@ public class KioskService extends TartanService {
             sendMessage(ParkingService.PARKING_SERVICE, msg);
 
             // Mark the reservation complete
-            HashMap<String,Object> completeMessage = new HashMap<String, Object>();
+            HashMap<String, Object> completeMessage = new HashMap<String, Object>();
             completeMessage.put(TartanParams.COMMAND, TartanParams.MSG_COMPLETE_RSVP);
             completeMessage.put(TartanParams.PAYLOAD, selectedRsvp);
             sendMessage(ReservationService.RESERVATION_SERVICE, completeMessage);
@@ -370,20 +367,18 @@ public class KioskService extends TartanService {
     /**
      * Get a reservation by name or license plate
      *
-     * @param name The name associated with the reservation.
+     * @param name         The name associated with the reservation.
      * @param licensePlate The license plate associated with the reservation.
-     *
      * @return True on success.
      */
     public Boolean getReservation(String name, String licensePlate) {
 
-        HashMap<String,Object> body = new HashMap<String, Object>();
+        HashMap<String, Object> body = new HashMap<String, Object>();
         body.put(TartanParams.COMMAND, TartanParams.MSG_REDEEM_RSVP);
 
         if (name != null) {
             body.put(TartanParams.CUSTOMER, name);
-        }
-        else if (licensePlate != null) {
+        } else if (licensePlate != null) {
             body.put(TartanParams.VEHICLE, licensePlate);
         }
 
@@ -410,7 +405,7 @@ public class KioskService extends TartanService {
     }
 
     public Boolean authenicate(ArrayList authlist) {
-        HashMap<String,Object> message = new HashMap<String, Object>();
+        HashMap<String, Object> message = new HashMap<String, Object>();
         message.put(TartanParams.COMMAND, TartanParams.MSG_AUTHENTICATE_ADMIN);
         message.put(TartanParams.PAYLOAD, authlist);
         sendMessage(AdminService.ADMIN_SERVICE, message);

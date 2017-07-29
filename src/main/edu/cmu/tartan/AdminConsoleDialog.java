@@ -1,7 +1,12 @@
 package edu.cmu.tartan;
 
+import edu.cmu.tartan.service.TartanParams;
+
 import javax.swing.*;
 import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 
 public class AdminConsoleDialog extends JDialog {
     private JPanel contentPane;
@@ -12,17 +17,20 @@ public class AdminConsoleDialog extends JDialog {
     private JRadioButton occupiedRadioButton2;
     private JRadioButton occupiedRadioButton3;
 
+    private JLabel peak_usage;
+    private JLabel revenue_value;
+    private JList list1;
+    private JLabel occupancy_value;
+    Long revenue;
+    HashMap<String, Integer> averageOccupancy;
+    ArrayList<Integer> peakUsageHours;
+
 
     public AdminConsoleDialog() {
         setContentPane(contentPane);
         setModal(true);
         getRootPane().setDefaultButton(buttonOK);
-        occupiedRadioButton.setSelected(false);
-        occupiedRadioButton1.setSelected(false);
-        occupiedRadioButton2.setSelected(false);
-        occupiedRadioButton3.setSelected(true);
 
-        occupiedRadioButton3.setText("occupied by kyungman");
 
         buttonOK.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -50,6 +58,76 @@ public class AdminConsoleDialog extends JDialog {
                 onCancel();
             }
         }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+    }
+
+    public AdminConsoleDialog(HashMap<String, Object> message) {
+        this();
+
+        revenue = (Long) message.get(TartanParams.REVENUE);
+        revenue_value.setText("total amount : " + 12);
+        peakUsageHours = (ArrayList<Integer>) message.get(TartanParams.PEAK_USAGE_HOURS);
+        if (peakUsageHours != null && peakUsageHours.size() > 1) {
+            peak_usage.setText("time is from " + peakUsageHours.get(0) + " to " + String.valueOf(peakUsageHours.get(1) + 1));
+        }
+        averageOccupancy = (HashMap<String, Integer>) message.get(TartanParams.AVERAGE_OCCUPANCY);
+        averageOccupancy = new HashMap<>();
+//for test
+        averageOccupancy.put("2017.08.18", 45);
+
+        Iterator ir = (Iterator) averageOccupancy.keySet().iterator();
+        String day;
+        StringBuilder sbr = new StringBuilder();
+        while (ir.hasNext()) {
+            day = (String) ir.next();
+
+            sbr.append(" " + day + "  -->  " + String.valueOf(averageOccupancy.get(day)) + "% " + " \n");
+            sbr.append("\n");
+            sbr.append(System.lineSeparator());
+
+        }
+        occupancy_value.setText(sbr.toString());
+
+        Integer[] states = (Integer[]) message.get(TartanParams.ACTUAL_SPOT);
+
+         occupiedRadioButton.setEnabled(false);
+        occupiedRadioButton1.setEnabled(false);
+        occupiedRadioButton2.setEnabled(false);
+        occupiedRadioButton3.setEnabled(false);
+
+        if (states != null && states.length > 0) {
+
+            if (states[0] == 1) {
+                occupiedRadioButton.setSelected(true);
+                occupiedRadioButton.setText("occupied");
+            } else {
+                occupiedRadioButton.setSelected(false);
+                occupiedRadioButton.setText("vacancy");
+            }
+            if (states[1] == 1) {
+                occupiedRadioButton1.setSelected(true);
+                occupiedRadioButton1.setText("occupied");
+            } else {
+                occupiedRadioButton1.setSelected(false);
+                occupiedRadioButton1.setText("vacancy");
+            }
+            if (states[2] == 1) {
+                occupiedRadioButton2.setSelected(true);
+                occupiedRadioButton2.setText("occupied");
+            } else {
+                occupiedRadioButton2.setSelected(false);
+                occupiedRadioButton2.setText("vacancy");
+            }
+            if (states[3] == 1) {
+                occupiedRadioButton3.setSelected(true);
+                occupiedRadioButton3.setText("occupied");
+            } else {
+                occupiedRadioButton3.setSelected(false);
+                occupiedRadioButton3.setText("vacancy");
+            }
+
+        }
+
+
     }
 
     private void onOK() {
