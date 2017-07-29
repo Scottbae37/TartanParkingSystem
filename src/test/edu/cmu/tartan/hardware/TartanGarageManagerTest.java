@@ -5,12 +5,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
-import java.util.StringJoiner;
 
 /**
  * @author sanghyuck.na@lge.com
@@ -21,6 +19,24 @@ public class TartanGarageManagerTest {
     private TartanGarageManager garageManager;
     private TartanGarageConnection conn;
 
+/*
+    TartanGarageManager
+            ok  closeEntryGate
+            ok  closeExitGate
+            disconnectFromGarage
+            getCapacity
+            getParkingSpots
+            getSpotOccupiedState
+            isConnected
+            ok  openEntryGate
+            ok  openExitGate
+            ok  setEntryLight
+            ok  setExitLight
+            setParkingSpotLights
+            startUpdateThread
+            toggleExitGate
+            updateGarageState
+  */
 
     @Test
     public void testSetEntryLight() throws Exception {
@@ -40,7 +56,6 @@ public class TartanGarageManagerTest {
 
         Mockito.verify(conn).sendMessageToGarage(cmd.toString());
         Assert.assertTrue(r);
-
     }
 
     @Test
@@ -66,6 +81,28 @@ public class TartanGarageManagerTest {
     }
 
     @Test
+    public void testOpenEntryGate() throws Exception {
+        StringBuffer cmd = new StringBuffer()
+                .append(TartanSensors.ENTRY_GATE)
+                .append(TartanSensors.PARAM_EQ)
+                .append(TartanSensors.OPEN)
+                .append(TartanSensors.MSG_END);
+
+        conn = Mockito.spy(TartanGarageConnection.class);
+
+        Mockito.doReturn(TartanSensors.OK)
+                .when(conn)
+                .sendMessageToGarage(cmd.toString());
+
+        garageManager = new TartanGarageManager(conn);
+        garageManager.openEntryGate();
+
+        Mockito.verify(conn)
+                .sendMessageToGarage(cmd.toString());
+    }
+
+
+    @Test
     public void testCloseEntryGate() throws Exception {
         StringBuffer cmd = new StringBuffer()
                 .append(TartanSensors.ENTRY_GATE)
@@ -85,6 +122,29 @@ public class TartanGarageManagerTest {
         Mockito.verify(conn)
                 .sendMessageToGarage(cmd.toString());
     }
+
+
+    @Test
+    public void testOpenExitGate() throws Exception {
+        StringBuffer cmd = new StringBuffer()
+                .append(TartanSensors.EXIT_GATE)
+                .append(TartanSensors.PARAM_EQ)
+                .append(TartanSensors.OPEN)
+                .append(TartanSensors.MSG_END);
+
+        conn = Mockito.spy(TartanGarageConnection.class);
+
+        Mockito.doReturn(TartanSensors.OK)
+                .when(conn)
+                .sendMessageToGarage(cmd.toString());
+
+        garageManager = new TartanGarageManager(conn);
+        garageManager.openExitGate();
+
+        Mockito.verify(conn)
+                .sendMessageToGarage(cmd.toString());
+    }
+
 
     @Test
     public void testCloseExitGate() throws Exception {
