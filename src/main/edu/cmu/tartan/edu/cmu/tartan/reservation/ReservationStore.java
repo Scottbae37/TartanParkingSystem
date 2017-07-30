@@ -3,6 +3,7 @@ package edu.cmu.tartan.edu.cmu.tartan.reservation;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -297,10 +298,10 @@ public class ReservationStore {
         File file = new File(settingsPath + File.separator + fileName);
         if (file != null && !file.exists()) {
             try {
-                file.createNewFile();
+                if (!file.createNewFile()) {
+                    throw new IOException();
+                }
             } catch (Exception e) {
-                e.printStackTrace();
-                return;
             }
         }
     }
