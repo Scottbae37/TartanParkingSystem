@@ -333,7 +333,7 @@ public class TartanGarageManagerTest {
         Mockito.doReturn(true)
                 .when(conn)
                 .isConnected();
-r
+
         StringBuffer cmd = new StringBuffer()
                 .append(TartanSensors.GET_STATE )
                 .append(TartanSensors.MSG_END);
