@@ -17,31 +17,33 @@ import java.util.HashMap;
 
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.times;
-import static org.powermock.api.support.membermodification.MemberMatcher.methods;
-import static org.powermock.api.support.membermodification.MemberModifier.suppress;
 
 /**
  * Created by jaeseung.bae on 7/18/2017.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(ParkingService.class)
+@PrepareForTest(TartanServiceMessageBus.class)
 public class ParkingServiceTest {
     private ParkingService cutSpy;
     private ParkingService cutSpyPower;
+    private TartanServiceMessageBus msgBus;
+    private MessageConsumer consumer;
+    private MessageProducer producer;
+    private TartanGarageManager garageMgrMock;
 
     @Before
     public void setUp() throws Exception {
-        suppress(methods(ParkingService.class, "init"));
+        msgBus = PowerMockito.mock(TartanServiceMessageBus.class);
+        consumer = PowerMockito.mock(MessageConsumer.class);
+        producer = PowerMockito.mock(MessageProducer.class);
+        garageMgrMock = Mockito.mock(TartanGarageManager.class);
+        PowerMockito.when(msgBus.getConsumer(TartanServiceMessageBus.TARTAN_TOPIC)).thenReturn(consumer);
+        PowerMockito.when(msgBus.getProducer(TartanServiceMessageBus.TARTAN_TOPIC)).thenReturn(producer);
+        PowerMockito.mockStatic(TartanServiceMessageBus.class);
+        PowerMockito.when(TartanServiceMessageBus.connect()).thenReturn(msgBus);
         cutSpy = Mockito.spy(ParkingService.class);
         cutSpyPower = PowerMockito.spy(new ParkingService());
-//        msgBus = PowerMockito.mock(TartanServiceMessageBus.class);
-//        consumer = PowerMockito.mock(MessageConsumer.class);
-//        producer = PowerMockito.mock(MessageProducer.class);
-//
-//        PowerMockito.when(msgBus.getConsumer(TartanServiceMessageBus.TARTAN_TOPIC)).thenReturn(consumer);
-//        PowerMockito.when(msgBus.getProducer(TartanServiceMessageBus.TARTAN_TOPIC)).thenReturn(producer);
-//        PowerMockito.mockStatic(TartanServiceMessageBus.class);
-//        PowerMockito.when(TartanServiceMessageBus.connect()).thenReturn(msgBus);
+        Whitebox.setInternalState(cutSpyPower, "garageManager", garageMgrMock);
     }
 
     @After
@@ -56,21 +58,9 @@ public class ParkingServiceTest {
      *
      */
     @Test
-    public void test_update_invocate_signalVehicleArrived_when_MSG_VEHICLE_AT_ENTRY() throws Exception {
-        /* Setup */
-        String cmd = TartanParams.MSG_VEHICLE_AT_ENTRY;
-        PowerMockito.doNothing().when(cutSpyPower, "signalVehicleArrived");
-        /* Exercise */
-        cutSpyPower.update(null, cmd);
-        /* Verify */
-        PowerMockito.verifyPrivate(cutSpyPower, times(1)).invoke("signalVehicleArrived");
-        /* Tear-down */
-    }
-    @Test
     public void test_update_not_invocate_signalVehicleReadyToLeave_when_MSG_VEHICLE_AT_ENTRY() throws Exception {
         /* Setup */
         String cmd = TartanParams.MSG_VEHICLE_AT_ENTRY;
-        PowerMockito.doNothing().when(cutSpyPower, "signalVehicleArrived");
         /* Exercise */
         cutSpyPower.update(null, cmd);
         /* Verify */
@@ -78,21 +68,9 @@ public class ParkingServiceTest {
         /* Tear-down */
     }
     @Test
-    public void test_update_invocate_signalVehicleReadyToLeave_when_MSG_VEHICLE_AT_EXIT() throws Exception {
-        /* Setup */
-        String cmd = TartanParams.MSG_VEHICLE_AT_EXIT;
-        PowerMockito.doNothing().when(cutSpyPower, "signalVehicleReadyToLeave");
-        /* Exercise */
-        cutSpyPower.update(null, cmd);
-        /* Verify */
-        PowerMockito.verifyPrivate(cutSpyPower, times(1)).invoke("signalVehicleReadyToLeave");
-        /* Tear-down */
-    }
-    @Test
     public void test_update_not_invocate_signalVehicleArrived_when_MSG_VEHICLE_AT_EXIT() throws Exception {
         /* Setup */
         String cmd = TartanParams.MSG_VEHICLE_AT_EXIT;
-        PowerMockito.doNothing().when(cutSpyPower, "signalVehicleReadyToLeave");
         /* Exercise */
         cutSpyPower.update(null, cmd);
         /* Verify */
@@ -103,8 +81,6 @@ public class ParkingServiceTest {
     public void test_update_not_invocate_both_methods_when_negative_cmd() throws Exception {
         /* Setup */
         String cmd = "Invalid_CMD";
-        PowerMockito.doNothing().when(cutSpyPower, "signalVehicleArrived");
-        PowerMockito.doNothing().when(cutSpyPower, "signalVehicleReadyToLeave");
         /* Exercise */
         cutSpyPower.update(null, cmd);
         /* Verify */
@@ -121,11 +97,9 @@ public class ParkingServiceTest {
     @Test
     public void test_signalVehicleReadyToLeave_invocate_sendMessage_with_vehicle_exit_cmd_data_to_KIOSK_SERVICE() throws Exception {
         /* SetUP */
-        TartanGarageManager garageMgrMock = Mockito.mock(TartanGarageManager.class);
         Integer[] occupiedState = new Integer[]{1,0,1,0};
         Mockito.doReturn(occupiedState).when(garageMgrMock).getSpotOccupiedState();
 
-        Whitebox.setInternalState(cutSpyPower, "garageManager", garageMgrMock);
         PowerMockito.doAnswer(new Answer<RuntimeException>() {
             @Override
             public RuntimeException answer(InvocationOnMock invocation) throws Throwable {
