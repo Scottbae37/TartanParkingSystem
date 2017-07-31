@@ -6,9 +6,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/**
- * Created by jaeseung.bae on 7/23/2017.
- */
 public class ReservationTest {
     @Before
     public void setUp() throws Exception {

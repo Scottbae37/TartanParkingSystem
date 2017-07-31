@@ -17,9 +17,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-/**
- * Created by jaeseung.bae on 7/17/2017.
- */
 @RunWith(PowerMockRunner.class)
 public class ReservationStoreTest {
 
