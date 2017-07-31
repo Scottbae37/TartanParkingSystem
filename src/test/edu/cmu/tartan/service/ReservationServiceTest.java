@@ -5,6 +5,7 @@ import edu.cmu.tartan.edu.cmu.tartan.reservation.Reservation;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.ReservationStore;
 import org.junit.Assert;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -32,6 +33,8 @@ public class ReservationServiceTest {
     MessageProducer producer;
     ReservationService reservationService;
     ReservationStore reservationStore;
+    Date startDate;
+    Date endDate;
 
     @org.junit.Before
     public void setUp() throws Exception {
@@ -77,9 +80,8 @@ public class ReservationServiceTest {
     public void handleCompleteReservationTest() throws Exception {
 
         Reservation reservation = Mockito.mock(Reservation.class);
-
-        Date startDate = Calendar.getInstance().getTime();
-        Date endDate = new Date();
+        startDate = Calendar.getInstance().getTime();
+        endDate = new Date();
         startDate.setTime(startDate.getTime() + 1000 * 60 * 60);
         endDate.setTime(startDate.getTime() + 1000 * 60 * 60);
         setDate(reservation, startDate, endDate);
@@ -91,22 +93,32 @@ public class ReservationServiceTest {
         Mockito.when(reservationStore.saveStaticsInfo(reservation)).thenReturn(true);
     }
 
-    @org.junit.Test
-    public void verifyReservation() throws Exception {
-        Reservation reservation = Mockito.mock(Reservation.class);
+    private void setReservation(Reservation reservation) throws Exception {
         Mockito.when(reservation.getCustomerName()).thenReturn("UnitTest");
         Mockito.when(reservation.getVehicleID()).thenReturn("UnitTest");
-        Date startDate = Calendar.getInstance().getTime();
-        Date endDate = new Date();
+        startDate = Calendar.getInstance().getTime();
+        endDate = new Date();
         startDate.setTime(startDate.getTime() + 1000 * 60 * 60);
         endDate.setTime(startDate.getTime() + 1000 * 60 * 60);
+        setDate(reservation, startDate, endDate);
+    }
+
+    @org.junit.Test
+    public void verifyReservationPass() throws Exception {
+        Reservation reservation = Mockito.mock(Reservation.class);
+        setReservation(reservation);
         Object ret;
 
         //Normal Case. CurrentTime + 1 Hour ~ CurrentTime + 2 Hour
-        Mockito.when(reservation.getStartTime()).thenReturn(startDate);
-        Mockito.when(reservation.getEndTime()).thenReturn(endDate);
         ret = Whitebox.invokeMethod(reservationService, "verifyReservation", reservation);
         Assert.assertTrue((Boolean) ret);
+    }
+
+    @org.junit.Test
+    public void verifyReservationStartTimeLargerThanEndTime() throws Exception {
+        Reservation reservation = Mockito.mock(Reservation.class);
+        setReservation(reservation);
+        Object ret;
 
         //endTime <= startTime
         startDate = Calendar.getInstance().getTime();
@@ -118,7 +130,13 @@ public class ReservationServiceTest {
         setDate(reservation, startDate, endDate);
         ret = Whitebox.invokeMethod(reservationService, "verifyReservation", reservation);
         Assert.assertFalse((Boolean) ret);
+    }
 
+    @org.junit.Test
+    public void verifyReservationDiffernceOfEndTimeAndStartTimeLargerThan24Hours() throws Exception {
+        Reservation reservation = Mockito.mock(Reservation.class);
+        setReservation(reservation);
+        Object ret;
 
         //endTime - startTime > 24 hours
         startDate = Calendar.getInstance().getTime();
@@ -127,7 +145,13 @@ public class ReservationServiceTest {
         setDate(reservation, startDate, endDate);
         ret = Whitebox.invokeMethod(reservationService, "verifyReservation", reservation);
         Assert.assertFalse((Boolean) ret);
+    }
 
+    @org.junit.Test
+    public void verifyReservationStartTimeSmallerThanCurrentTime() throws Exception {
+        Reservation reservation = Mockito.mock(Reservation.class);
+        setReservation(reservation);
+        Object ret;
 
         //Current time > startTime
         startDate = Calendar.getInstance().getTime();
@@ -136,7 +160,13 @@ public class ReservationServiceTest {
         setDate(reservation, startDate, endDate);
         ret = Whitebox.invokeMethod(reservationService, "verifyReservation", reservation);
         Assert.assertFalse((Boolean) ret);
+    }
 
+    @org.junit.Test
+    public void verifyReservationStartTimeLargerThanWeek() throws Exception {
+        Reservation reservation = Mockito.mock(Reservation.class);
+        setReservation(reservation);
+        Object ret;
 
         //Startime more than a week out
         startDate = Calendar.getInstance().getTime();
@@ -146,6 +176,13 @@ public class ReservationServiceTest {
         setDate(reservation, startDate, endDate);
         ret = Whitebox.invokeMethod(reservationService, "verifyReservation", reservation);
         Assert.assertFalse((Boolean) ret);
+    }
+
+    @org.junit.Test
+    public void verifyReservationEndTimeLargerThanWeek() throws Exception {
+        Reservation reservation = Mockito.mock(Reservation.class);
+        setReservation(reservation);
+        Object ret;
 
         //Endime more than a week out
         startDate = Calendar.getInstance().getTime();
@@ -155,7 +192,13 @@ public class ReservationServiceTest {
         setDate(reservation, startDate, endDate);
         ret = Whitebox.invokeMethod(reservationService, "verifyReservation", reservation);
         Assert.assertFalse((Boolean) ret);
+    }
 
+    @org.junit.Test
+    public void verifyReservationCustomerNameIsNull() throws Exception {
+        Reservation reservation = Mockito.mock(Reservation.class);
+        setReservation(reservation);
+        Object ret;
 
         //Customer Name is null
         startDate = Calendar.getInstance().getTime();
@@ -166,6 +209,14 @@ public class ReservationServiceTest {
         Mockito.when(reservation.getCustomerName()).thenReturn(null);
         ret = Whitebox.invokeMethod(reservationService, "verifyReservation", reservation);
         Assert.assertFalse((Boolean) ret);
+
+    }
+
+    @org.junit.Test
+    public void verifyReservationVehicleIdIsNull() throws Exception {
+        Reservation reservation = Mockito.mock(Reservation.class);
+        setReservation(reservation);
+        Object ret;
 
 
         //VehicleId is null
@@ -217,10 +268,11 @@ public class ReservationServiceTest {
     }
 
     @org.junit.Test
-    public void redeemHandleMeg() throws Exception {
+    public void redeemHandleMegFailBecauseOfStartTime() throws Exception {
         HashMap<String, Object> msg = new HashMap<String, Object>();
         Vector<Reservation> results = new Vector<>();
         Reservation reservation = Mockito.mock(Reservation.class);
+        setReservation(reservation);
         results.add(reservation);
         msg.put(TartanParams.CUSTOMER, "UnitTest");
         msg.put(TartanParams.VEHICLE, "UnitTest");
@@ -229,8 +281,37 @@ public class ReservationServiceTest {
 
         reservationService.handleMessage(msg);
 
-        Mockito.verify(reservationService).sendMessage(Mockito.anyString(), Mockito.any(HashMap.class));
+        ArgumentCaptor<String> keyMsg = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<HashMap> responseMsg = ArgumentCaptor.forClass(HashMap.class);
+
+        Mockito.verify(reservationService).sendMessage(keyMsg.capture(), responseMsg.capture());
+        HashMap<String, Object> response = (HashMap<String, Object>) responseMsg.getValue();
+        Assert.assertEquals(TartanParams.ERROR, response.get(TartanParams.COMMAND));
     }
+
+    @org.junit.Test
+    public void redeemHandleMegSuccess() throws Exception {
+        HashMap<String, Object> msg = new HashMap<String, Object>();
+        Vector<Reservation> results = new Vector<>();
+        Reservation reservation = Mockito.mock(Reservation.class);
+        setReservation(reservation);
+        startDate.setTime(startDate.getTime() - 1000 * 60 * 60 * 2);
+        results.add(reservation);
+        msg.put(TartanParams.CUSTOMER, "UnitTest");
+        msg.put(TartanParams.VEHICLE, "UnitTest");
+        msg.put(TartanParams.COMMAND, TartanParams.MSG_REDEEM_RSVP);
+        Mockito.when(reservationStore.lookupByCustomer(Mockito.anyString())).thenReturn(results);
+
+        reservationService.handleMessage(msg);
+
+        ArgumentCaptor<String> keyMsg = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<HashMap> responseMsg = ArgumentCaptor.forClass(HashMap.class);
+
+        Mockito.verify(reservationService).sendMessage(keyMsg.capture(), responseMsg.capture());
+        HashMap<String, Object> response = (HashMap<String, Object>) responseMsg.getValue();
+        Assert.assertEquals(TartanParams.MSG_REDEEM_RSVP, response.get(TartanParams.COMMAND));
+    }
+
 
     @org.junit.Test
     public void getAllReservationHandleMeg() throws Exception {
