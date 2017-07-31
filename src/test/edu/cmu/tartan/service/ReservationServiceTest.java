@@ -15,11 +15,7 @@ import org.powermock.reflect.Whitebox;
 
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
-import java.io.PrintWriter;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Vector;
+import java.util.*;
 
 /**
  * Created by chongjae.yoo on 2017-07-18.
@@ -369,6 +365,38 @@ public class ReservationServiceTest {
     public void finalize() throws Exception {
         reservationService.terminate();
         Mockito.verify(reservationService).stop();
+    }
+
+    @org.junit.Test
+    public void getParkingSpot() throws Exception {
+        int sizeOfParkingSpots = 4;
+        ArrayList<Integer> parkingSpots = new ArrayList<>();
+        Reservation reservation = Mockito.mock(Reservation.class);
+        setReservation(reservation);
+        Vector<Reservation> reservations = new Vector<>();
+        Mockito.when(reservationStore.getReservations()).thenReturn(reservations);
+        int ret;
+
+        for (int i = 0; i < sizeOfParkingSpots; i++) {
+            parkingSpots.add(0);
+            Reservation reservation_temp = Mockito.mock(Reservation.class);
+            Mockito.when(reservation_temp.getSpotId()).thenReturn(i);
+            setReservation(reservation_temp);
+            reservations.add(reservation_temp);
+        }
+        Reservation overReservation = reservations.remove(reservations.size() - 1);
+        HashMap<String, Object> message = new HashMap<>();
+        message.put(TartanParams.COMMAND, TartanParams.MSG_GET_PARKING_SPOTS);
+        message.put(TartanParams.PAYLOAD, parkingSpots);
+        reservationService.handleMessage(message);
+
+
+        ret = Whitebox.invokeMethod(reservationService, "getParkingSpot", reservation);
+        Assert.assertTrue(ret == sizeOfParkingSpots - 1);
+
+        reservations.add(overReservation);
+        ret = Whitebox.invokeMethod(reservationService, "getParkingSpot", reservation);
+        Assert.assertTrue(ret == TartanParams.SPOT_UNAVAILABLE);
     }
 
 }
