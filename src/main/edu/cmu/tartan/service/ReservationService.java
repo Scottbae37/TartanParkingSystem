@@ -165,7 +165,8 @@ public class ReservationService extends TartanService {
      */
     @Override
     public void terminate() {
-        rsvpStore.shutdown();
+        if(rsvpStore != null)
+            rsvpStore.shutdown();
         stop();
     }
 

@@ -5,6 +5,7 @@ import edu.cmu.tartan.edu.cmu.tartan.reservation.Reservation;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.ReservationStore;
 import org.junit.Assert;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -23,7 +24,7 @@ import java.util.Vector;
  * Created by chongjae.yoo on 2017-07-18.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({TartanServiceMessageBus.class, ReservationService.class})
+@PrepareForTest({TartanServiceMessageBus.class})
 public class ReservationServiceTest {
 
     TartanServiceMessageBus msgBus;
@@ -45,26 +46,20 @@ public class ReservationServiceTest {
         PowerMockito.whenNew(ReservationStore.class).withArguments(Mockito.anyString()).thenReturn(reservationStore);
 
         reservationService = Mockito.spy(new ReservationService("./"));
-        run();
+        Whitebox.setInternalState(reservationService, "rsvpStore", reservationStore);
+        //run();
     }
 
     @org.junit.After
     public void tearDown() throws Exception {
     }
 
-    public void run() throws Exception {
-        PrintWriter writer = new PrintWriter("rsvp.txt", "UTF-8");
-        writer.close();
-        reservationService.run();
-        Mockito.verify(reservationService).sendMessage(Mockito.eq(ParkingService.PARKING_SERVICE), Mockito.any(HashMap.class));
-    }
-
     @org.junit.Test
     public void newReservationHandleMeg() throws Exception {
         HashMap<String, Object> msg = new HashMap<String, Object>();
         Reservation reservation = Mockito.mock(Reservation.class);
-        Mockito.when(reservation.getCustomerName()).thenReturn("");
-        Mockito.when(reservation.getVehicleID()).thenReturn("");
+        Mockito.when(reservation.getCustomerName()).thenReturn("UnitTest");
+        Mockito.when(reservation.getVehicleID()).thenReturn("UnitTest");
         Date normalStartDate = Calendar.getInstance().getTime();
         Date normalEndDate = new Date();
         normalStartDate.setTime(normalStartDate.getTime() + 1000 * 60 * 60);
@@ -79,7 +74,7 @@ public class ReservationServiceTest {
     }
 
     @org.junit.Test
-    public void handleCompleteReservationTest() throws Exception{
+    public void handleCompleteReservationTest() throws Exception {
 
         Reservation reservation = Mockito.mock(Reservation.class);
 
@@ -216,6 +211,8 @@ public class ReservationServiceTest {
     public void getParkingSpotHandleMeg() throws Exception {
         HashMap<String, Object> msg = new HashMap<String, Object>();
         msg.put(TartanParams.COMMAND, TartanParams.MSG_GET_PARKING_SPOTS);
+
+        //It just save parking spots
         reservationService.handleMessage(msg);
     }
 
@@ -231,18 +228,27 @@ public class ReservationServiceTest {
         Mockito.when(reservationStore.lookupByCustomer(Mockito.anyString())).thenReturn(results);
 
         reservationService.handleMessage(msg);
+
+        Mockito.verify(reservationService).sendMessage(Mockito.anyString(), Mockito.any(HashMap.class));
     }
 
     @org.junit.Test
     public void getAllReservationHandleMeg() throws Exception {
         HashMap<String, Object> msg = new HashMap<String, Object>();
         msg.put(TartanParams.COMMAND, TartanParams.MSG_GET_ALL_RSVP);
+
+        reservationService.handleMessage(msg);
+        Mockito.verify(reservationService).sendMessage(Mockito.anyString(), Mockito.any(HashMap.class));
     }
 
     @org.junit.Test
     public void completeReservationHandleMeg() throws Exception {
         HashMap<String, Object> msg = new HashMap<String, Object>();
+        Reservation reservation = Mockito.mock(Reservation.class);
         msg.put(TartanParams.COMMAND, TartanParams.MSG_COMPLETE_RSVP);
+        msg.put(TartanParams.PAYLOAD, reservation);
+        reservationService.handleMessage(msg);
+        Mockito.verify(reservationStore).markReservationRedeemed(reservation);
     }
 
     @org.junit.Test

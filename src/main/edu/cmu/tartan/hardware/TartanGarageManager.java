@@ -75,7 +75,8 @@ public class TartanGarageManager extends Observable {
      * Disconnect from the house
      */
     public void disconnectFromGarage() {
-        connection.disconnect();
+        if(connection != null)
+            connection.disconnect();
     }
 
     /**
