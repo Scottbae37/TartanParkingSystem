@@ -80,7 +80,7 @@ public class KioskServiceTest {
 
     @org.junit.Test
     public void getReservationWithLicense() throws Exception {
-        Assert.assertTrue(kioskService.getReservation(null,""));
+        Assert.assertTrue(kioskService.getReservation(null, ""));
         Mockito.verify(kioskService).sendMessage(Mockito.eq("RsvpService"), Mockito.any(HashMap.class));
     }
 
@@ -318,5 +318,31 @@ public class KioskServiceTest {
         kioskService.handleMessage(msg);
 
         Mockito.verify(window).showReceipt(reservation);
+    }
+
+    @org.junit.Test
+    public void authenticationResultMsgHandle() throws Exception {
+        HashMap<String, Object> msg = new HashMap<String, Object>();
+        msg.put(TartanParams.COMMAND, TartanParams.MSG_AUTHENTICATION_RESULT);
+        msg.put(TartanParams.PAYLOAD, true);
+
+        kioskService.handleMessage(msg);
+
+        Mockito.verify(kioskService).sendMessage(Mockito.eq(AdminService.ADMIN_SERVICE), Mockito.any(HashMap.class));
+
+        msg.put(TartanParams.PAYLOAD, false);
+        kioskService.handleMessage(msg);
+
+        Mockito.verify(window).showError(Mockito.anyString());
+    }
+
+    @org.junit.Test
+    public void statisticalDataResultMsgHandle() throws Exception {
+        HashMap<String, Object> msg = new HashMap<String, Object>();
+        msg.put(TartanParams.COMMAND, TartanParams.MSG_STATISTICAL_DATA_RESULT);
+
+        kioskService.handleMessage(msg);
+
+        Mockito.verify(window).showAdminConsole(Mockito.any(HashMap.class));
     }
 }
