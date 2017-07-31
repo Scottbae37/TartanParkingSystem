@@ -80,7 +80,16 @@ public class PaymentService extends TartanService {
         // FIXED about hour limit
         boolean isDaytime = ((hour >= 9) && (hour < 17)); // day time is 9 AM to 5 PM
 
-        if (isWeekday && isDaytime) {
+        // FIXED : PaymentCorrect TC01 : weekday to weekend
+        boolean isSaturdayBeforeDay = (day == Calendar.SATURDAY) && (hour < 9);
+        // FIXED : PaymentCorrect TC02 : weekend to weekday
+        boolean isMondayBeforDay = (day == Calendar.MONDAY) && (hour < 9);
+
+        if(isSaturdayBeforeDay){
+            return WEEK_NIGHT_RATE;
+        }else if(isMondayBeforDay){
+            return WEEKEND_NIGHT_RATE;
+        }else if (isWeekday && isDaytime) {
             return WEEK_DAY_RATE;
         }
         else if (isWeekday && !isDaytime) {
