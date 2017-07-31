@@ -127,7 +127,6 @@ public class Payment implements Serializable {
             cal.setTime(date);
             cardMonth = cal.get(Calendar.MONTH) + 1;
         } catch (ParseException e) {
-            e.printStackTrace();
         }
 
         if((cardYear > localYear) || (cardYear == localYear && cardMonth >= localMonth))

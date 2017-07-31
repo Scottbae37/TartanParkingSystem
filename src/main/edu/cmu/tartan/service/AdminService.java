@@ -141,7 +141,6 @@ public class AdminService extends TartanService {
             byte[] hash = digest.digest(pwd.getBytes(StandardCharsets.UTF_8));
             encoded = Base64.getEncoder().encodeToString(hash);
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
         }
         return encoded;
     }

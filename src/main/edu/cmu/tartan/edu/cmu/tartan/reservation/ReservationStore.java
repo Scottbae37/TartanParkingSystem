@@ -289,7 +289,6 @@ public class ReservationStore {
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
-            e.printStackTrace();
         }
         return false;
     }

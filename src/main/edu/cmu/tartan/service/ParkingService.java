@@ -93,7 +93,6 @@ public class ParkingService extends TartanService implements Observer {
             garageManager.addObserver(this); // for notifications
             initialize();
         } catch (Exception e) {
-            e.printStackTrace();
             return false;
         }
         return true;
