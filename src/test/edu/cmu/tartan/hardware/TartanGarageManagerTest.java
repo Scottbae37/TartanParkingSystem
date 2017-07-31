@@ -320,11 +320,37 @@ public class TartanGarageManagerTest {
      * > alertVehicleAtExit()
      */
     @Test
-    public void testStartUpdateThread() {
-        //garageManager.startUpdateThread();
-
-       // Mockito.verify(conn).disconnect();
+    public void testStartUpdateThreadIsNotConnected() {
+        Mockito.doReturn(false)
+                .when(conn)
+                .isConnected();
+        garageManager.startUpdateThread();
+        Mockito.verify(conn).isConnected();
     }
+
+    @Test
+    public void testStartUpdateThreadUpdateGarageState() {
+        Mockito.doReturn(true)
+                .when(conn)
+                .isConnected();
+r
+        StringBuffer cmd = new StringBuffer()
+                .append(TartanSensors.GET_STATE )
+                .append(TartanSensors.MSG_END);
+
+        Mockito.doReturn(null)
+                .when(conn)
+                .sendMessageToGarage(cmd.toString());
+
+        garageManager.startUpdateThread();
+
+        Mockito.verify(conn, Mockito.atMost(2)).isConnected();
+
+        Mockito.verify(conn)
+                .sendMessageToGarage(cmd.toString());
+
+    }
+
 
     public void testEn() {
         ArrayList<String> lightState = new ArrayList<String>();

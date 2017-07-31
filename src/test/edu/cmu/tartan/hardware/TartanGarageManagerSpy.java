@@ -1,6 +1,6 @@
 package edu.cmu.tartan.hardware;
 
-public class TartanGarageManagerSpy extends  TartanGarageManager {
+public class TartanGarageManagerSpy extends TartanGarageManager {
     /**
      * Set up the connection manager with a connection.
      *
@@ -14,7 +14,7 @@ public class TartanGarageManagerSpy extends  TartanGarageManager {
     public void startUpdateThread() {
         super.startUpdateThread();
         try {
-            updateThread.join();
+            updateThread.join(5000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
