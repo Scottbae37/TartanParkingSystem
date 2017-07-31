@@ -224,7 +224,7 @@ public class ReservationService extends TartanService {
             spot = 0;
         }
         // There are no spots available for this time
-        if (occupiedSpots.size() >= parkingSpots.size()) { /* FIXME: Maybe logical error, Should use >= for fully occupied slots */
+        else if (occupiedSpots.size() >= parkingSpots.size()) { /* FIXME: Maybe logical error, Should use >= for fully occupied slots */
             return TartanParams.SPOT_UNAVAILABLE;
         } else {
             Collections.sort(occupiedSpots);
