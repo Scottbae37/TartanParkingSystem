@@ -62,9 +62,19 @@ public class ReservationStoreTest {
 
     @Test
     public void addAndGetReservations() throws Exception {
-        Reservation reservation = Mockito.mock(Reservation.class);
+        Reservation reservation = new Reservation();
+        Reservation reservation1 = new Reservation();
+        reservation.setStartTime(Calendar.getInstance().getTime());
+        reservation.setEndTime(Calendar.getInstance().getTime());
+        reservation1.setStartTime(reservation.getStartTime());
+        reservation1.setEndTime(reservation.getEndTime());
+        reservation.setCustomerName("UnitTest");
+        reservation1.setCustomerName("UnitTest");
+        reservation.setVehicleID("UnitTest");
+        reservation1.setVehicleID("UnitTest");
         Assert.assertTrue(reservationStore.getReservations().isEmpty());
         reservationStore.addReservation(reservation);
+        reservationStore.addReservation(reservation1);
         Assert.assertTrue(reservationStore.getReservations().size() == 1);
     }
 
