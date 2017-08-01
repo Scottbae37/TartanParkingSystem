@@ -42,11 +42,9 @@ public class ReservationServiceTest {
         PowerMockito.when(msgBus.getProducer(TartanServiceMessageBus.TARTAN_TOPIC)).thenReturn(producer);
         PowerMockito.mockStatic(TartanServiceMessageBus.class);
         PowerMockito.when(TartanServiceMessageBus.connect()).thenReturn(msgBus);
-        PowerMockito.whenNew(ReservationStore.class).withArguments(Mockito.anyString()).thenReturn(reservationStore);
 
         reservationService = Mockito.spy(new ReservationService("./"));
         Whitebox.setInternalState(reservationService, "rsvpStore", reservationStore);
-        //run();
     }
 
     @org.junit.After
@@ -249,6 +247,17 @@ public class ReservationServiceTest {
         msg.put(TartanParams.PAYLOAD, reservation);
         msg.put(TartanParams.COMMAND, TartanParams.MSG_UPDATE_RSVP);
         Mockito.when(reservationStore.getReservations()).thenReturn(reservations);
+        int sizeOfParkingSpots = 4;
+        ArrayList<Integer> parkingSpots = new ArrayList<>();
+
+        for (int i = 0; i < sizeOfParkingSpots; i++) {
+            parkingSpots.add(0);
+        }
+        HashMap<String, Object> message = new HashMap<>();
+        message.put(TartanParams.COMMAND, TartanParams.MSG_GET_PARKING_SPOTS);
+        message.put(TartanParams.PAYLOAD, parkingSpots);
+        reservationService.handleMessage(message);
+
         reservationService.handleMessage(msg);
         Mockito.verify(reservation).setSpotId(Mockito.anyInt());
         Mockito.verify(reservationService).sendMessage(Mockito.eq(KioskService.KIOSK_SERVICE), Mockito.any(HashMap.class));
@@ -315,7 +324,7 @@ public class ReservationServiceTest {
         msg.put(TartanParams.COMMAND, TartanParams.MSG_GET_ALL_RSVP);
 
         reservationService.handleMessage(msg);
-        Mockito.verify(reservationService).sendMessage(Mockito.anyString(), Mockito.any(HashMap.class));
+        Mockito.verify(reservationService).sendMessage(Mockito.any(), Mockito.any(HashMap.class));
     }
 
     @org.junit.Test

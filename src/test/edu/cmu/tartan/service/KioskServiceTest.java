@@ -120,7 +120,6 @@ public class KioskServiceTest {
         Mockito.when(reservation.getIsPaid()).thenReturn(true);
         reservations.add(reservation);
         msg.put(TartanParams.PAYLOAD, reservations);
-        Mockito.when(window.acceptPayment()).thenReturn(null).thenReturn(payment);
         kioskService.handleMessage(msg);
         Mockito.verify(window).redeemReservation(reservation);
         Mockito.verify(kioskService).sendMessage(Mockito.eq("ParkingService"), Mockito.any(HashMap.class));
@@ -129,6 +128,7 @@ public class KioskServiceTest {
         // Not Paid.
         reservation = Mockito.mock(Reservation.class);
         Mockito.when(reservation.getIsPaid()).thenReturn(false);
+        Mockito.when(window.acceptPayment(reservation)).thenReturn(payment);
         reservations.clear();
         reservations.addElement(reservation);
         msg.clear();
@@ -220,14 +220,14 @@ public class KioskServiceTest {
         msg.put(TartanParams.PAYLOAD, reservation);
 
         //No payment Info.
-        Mockito.when(window.acceptPayment()).thenReturn(null);
+        Mockito.when(window.acceptPayment(reservation)).thenReturn(null);
         kioskService.handleMessage(msg);
         Mockito.verify(reservation).setIsPaid(false);
         Mockito.verify(kioskService).sendMessage(Mockito.eq(ReservationService.RESERVATION_SERVICE), Mockito.any(HashMap.class));
         Mockito.verify(window).confirmReservation(reservation);
 
         //Payment Info was set
-        Mockito.when(window.acceptPayment()).thenReturn(payment);
+        Mockito.when(window.acceptPayment(reservation)).thenReturn(payment);
         kioskService.handleMessage(msg);
         Mockito.verify(reservation).setIsPaid(true);
         Mockito.verify(payment).setReservation(reservation);
@@ -296,7 +296,7 @@ public class KioskServiceTest {
 
         kioskService.handleMessage(msg);
 
-        Mockito.verify(window).showError(Mockito.anyString());
+        Mockito.verify(window).showError(Mockito.any());
     }
 
     @org.junit.Test
