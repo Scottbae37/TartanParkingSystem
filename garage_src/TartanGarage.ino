@@ -454,10 +454,10 @@ int GetEntryIRState()
 
    // if EntryBeamState is LOW the beam is broken
    if (EntryBeamState == LOW)  {
-      Serial.println("Entry beam broken");
+      Serial.println("Entry beam is broken.");
       return ARRIVED;
    }
-   Serial.println("Exit beam is not broken.");
+   Serial.println("Entry beam is not broken.");
    return NOT_ARRIVED;
 }
 
@@ -476,10 +476,10 @@ int GetExitIRState()
 
    // if EntryBeamState is LOW the beam is broken
    if (ExitBeamState == LOW)  {
-      Serial.println("Entry beam broken");
+      Serial.println("Exit beam is broken.");
       return ARRIVED;
    }
-   Serial.println("Entry beam is not broken.");
+   Serial.println("Exit beam is not broken.");
    return NOT_ARRIVED;
 }
 
