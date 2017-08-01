@@ -26,7 +26,7 @@
 #include <Servo.h>
 
 #define PORTID 5050            // IP socket port#
-#define	THRESHOLD 5050		   // Car detection
+#define	THRESHOLD 50		   // Car detection
 
 char ssid[] = "LGArchi";       // The network SSID
 int status = WL_IDLE_STATUS;   // Network connection status
