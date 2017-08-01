@@ -4,6 +4,8 @@ import org.junit.*;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.mockito.internal.util.reflection.Whitebox;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.*;
@@ -16,6 +18,8 @@ import java.util.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.powermock.api.support.membermodification.MemberMatcher.methods;
+import static org.powermock.api.support.membermodification.MemberModifier.suppress;
 
 @RunWith(PowerMockRunner.class)
 public class ReservationStoreTest {
@@ -27,6 +31,16 @@ public class ReservationStoreTest {
     private int numberOfSpot = 4;
     private static Date initDate;
 
+    private ReservationStore cut;
+    private String name;
+    private String vId;
+    private String startTime;
+    private String endTime;
+    private String diffName;
+    private String diffVehicleId;
+    private String diffStartTime;
+    private String diffEndTime;
+
     @BeforeClass
     public static void setUpForClass() {
         initDate = Calendar.getInstance().getTime();
@@ -37,6 +51,15 @@ public class ReservationStoreTest {
         file = new File("./unit_test");
         file.mkdir();
         reservationStore = new ReservationStore(file.getPath());
+
+        name = "A";
+        vId = "PA38234";
+        startTime = "0000:00:00:09:00";
+        endTime = "0000:00:00:11:00";
+        diffName = "B";
+        diffVehicleId = "NW234234";
+        diffStartTime = "0000:00:00:08:00";
+        diffEndTime = "0000:00:00:12:00";
     }
 
     @After
@@ -62,9 +85,19 @@ public class ReservationStoreTest {
 
     @Test
     public void addAndGetReservations() throws Exception {
-        Reservation reservation = Mockito.mock(Reservation.class);
+        Reservation reservation = new Reservation();
+        Reservation reservation1 = new Reservation();
+        reservation.setStartTime(Calendar.getInstance().getTime());
+        reservation.setEndTime(Calendar.getInstance().getTime());
+        reservation1.setStartTime(reservation.getStartTime());
+        reservation1.setEndTime(reservation.getEndTime());
+        reservation.setCustomerName("UnitTest");
+        reservation1.setCustomerName("UnitTest");
+        reservation.setVehicleID("UnitTest");
+        reservation1.setVehicleID("UnitTest");
         Assert.assertTrue(reservationStore.getReservations().isEmpty());
         reservationStore.addReservation(reservation);
+        reservationStore.addReservation(reservation1);
         Assert.assertTrue(reservationStore.getReservations().size() == 1);
     }
 
@@ -131,6 +164,151 @@ public class ReservationStoreTest {
         reservationStore.shutdown();
         String afterShutDownDBData = getCurrentReservationDBData();
         Assert.assertNotEquals(currentDBData, afterShutDownDBData);
+    }
+
+    private Reservation helperMakeRsvp(String customerName, String vehicleId, String start, String end){
+        Reservation newRsvp = new Reservation();
+        newRsvp.setCustomerName(customerName);
+        newRsvp.setVehicleID(vehicleId);
+        newRsvp.setStartTime(start);
+        newRsvp.setEndTime(end);
+        return newRsvp;
+    }
+
+    @Test
+    public void test_isDuplicate_return_true_with_same_obj() throws Exception {
+        /* Setup */
+        suppress(methods(ReservationStore.class, "createFile"));
+        cut = Mockito.spy(new ReservationStore(null));
+        Reservation rsvp = new Reservation();
+        rsvp.setCustomerName(name);
+        rsvp.setVehicleID(vId);
+        rsvp.setStartTime(startTime);
+        rsvp.setEndTime(endTime);
+
+        Reservation sameObjRsvp                 = rsvp;
+
+        /* Exercise */
+        Vector<Reservation> spyReser = Mockito.spy(Vector.class);
+        Whitebox.setInternalState(cut, "reservations", spyReser);
+        spyReser.add(rsvp);
+
+        /* Verify */
+        assertTrue("With Same Obj", cut.isDuplicate(sameObjRsvp));
+        /* Tear-down */
+    }
+
+    @Test
+    public void test_isDuplicate_return_true_with_same_contents() throws Exception {
+        /* Setup */
+        suppress(methods(ReservationStore.class, "createFile"));
+        cut = Mockito.spy(new ReservationStore(null));
+        Reservation rsvp = new Reservation();
+        rsvp.setCustomerName(name);
+        rsvp.setVehicleID(vId);
+        rsvp.setStartTime(startTime);
+        rsvp.setEndTime(endTime);
+        Reservation sameRsvp            = helperMakeRsvp(name, vId, startTime, endTime);
+
+        Vector<Reservation> spyReser    = Mockito.spy(Vector.class);
+        Whitebox.setInternalState(cut, "reservations", spyReser);
+        spyReser.add(rsvp);
+
+        /* Exercise */
+        /* Verify */
+        assertTrue("With Same Contents",cut.isDuplicate(sameRsvp));
+    }
+
+    @Test
+    public void test_isDuplicate_return_false_with_diff_name() throws Exception {
+        /* Setup */
+        suppress(methods(ReservationStore.class, "createFile"));
+        cut = Mockito.spy(new ReservationStore(null));
+        Reservation rsvp = new Reservation();
+        rsvp.setCustomerName(name);
+        rsvp.setVehicleID(vId);
+        rsvp.setStartTime(startTime);
+        rsvp.setEndTime(endTime);
+
+        Reservation diffRsvpWithDiffName    = helperMakeRsvp(diffName, vId, startTime, endTime);
+
+        Vector<Reservation> spyReser        = Mockito.spy(Vector.class);
+        Whitebox.setInternalState(cut, "reservations", spyReser);
+        spyReser.add(rsvp);
+
+        /* Exercise */
+        /* Verify */
+        assertFalse("With Diff Name",cut.isDuplicate(diffRsvpWithDiffName));
+        /* Tear-down */
+    }
+
+    @Test
+    public void test_isDuplicate_return_false_with_diff_vehicle_id() throws Exception {
+        /* Setup */
+        suppress(methods(ReservationStore.class, "createFile"));
+        cut = Mockito.spy(new ReservationStore(null));
+        Reservation rsvp = new Reservation();
+        rsvp.setCustomerName(name);
+        rsvp.setVehicleID(vId);
+        rsvp.setStartTime(startTime);
+        rsvp.setEndTime(endTime);
+
+        Reservation diffRsvpWithDiffVid     = helperMakeRsvp(name, diffVehicleId, startTime, endTime);
+
+        Vector<Reservation> spyReser        = Mockito.spy(Vector.class);
+        Whitebox.setInternalState(cut, "reservations", spyReser);
+        spyReser.add(rsvp);
+
+        /* Exercise */
+        /* Verify */
+        assertFalse("With Diff Vid",cut.isDuplicate(diffRsvpWithDiffVid));
+        /* Tear-down */
+    }
+
+    @Test
+    public void test_isDuplicate_return_false_with_diff_start_time() throws Exception {
+        /* Setup */
+        suppress(methods(ReservationStore.class, "createFile"));
+        cut = Mockito.spy(new ReservationStore(null));
+        Reservation rsvp = new Reservation();
+        rsvp.setCustomerName(name);
+        rsvp.setVehicleID(vId);
+        rsvp.setStartTime(startTime);
+        rsvp.setEndTime(endTime);
+
+        Reservation diffRsvpWithDiffStartTime   = helperMakeRsvp(name, vId, diffStartTime, endTime);
+
+        Vector<Reservation> spyReser            = Mockito.spy(Vector.class);
+        Whitebox.setInternalState(cut, "reservations", spyReser);
+        spyReser.add(rsvp);
+
+        /* Exercise */
+        /* Verify */
+        assertFalse("With Diff StartTime",cut.isDuplicate(diffRsvpWithDiffStartTime));
+        /* Tear-down */
+    }
+
+    @Test
+    public void test_isDuplicate_return_false_with_diff_end_time() throws Exception {
+        /* Setup */
+        suppress(methods(ReservationStore.class, "createFile"));
+        cut = Mockito.spy(new ReservationStore(null));
+        Reservation rsvp = new Reservation();
+        rsvp.setCustomerName(name);
+        rsvp.setVehicleID(vId);
+        rsvp.setStartTime(startTime);
+        rsvp.setEndTime(endTime);
+
+        Reservation diffRsvpWithDiffEndTime     = helperMakeRsvp(name, vId, startTime, diffEndTime);
+
+        Vector<Reservation> spyReser            = Mockito.spy(Vector.class);
+        Whitebox.setInternalState(cut, "reservations", spyReser);
+        spyReser.add(rsvp);
+
+        /* Exercise */
+        /* Verify */
+        assertFalse("With Diff EndTime",cut.isDuplicate(diffRsvpWithDiffEndTime));
+        /* Tear-down */
     }
 
     @Test
