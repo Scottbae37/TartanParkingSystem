@@ -119,7 +119,7 @@ public class TartanGarageConnection {
      * @param addr the address of the house
      * @return true if connection successful, false otherwise
      */
-    private Boolean connect(String addr) {
+    public Boolean connect(String addr) {
         address = addr;
 
         try {

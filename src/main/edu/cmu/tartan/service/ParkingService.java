@@ -73,7 +73,7 @@ public class ParkingService extends TartanService implements Observer {
      * Indicate that a vehicle has arrived.
      */
     private void signalVehicleArrived() {
-
+        System.out.println("ParkingService.signalVehicleArrived");
         HashMap<String, Object> body = new HashMap<String, Object>();
         body.put(TartanParams.COMMAND, TartanParams.MSG_VEHICLE_AT_ENTRY);
         body.put(TartanParams.ACTUAL_SPOT, garageManager.getSpotOccupiedState());
@@ -93,6 +93,7 @@ public class ParkingService extends TartanService implements Observer {
             garageManager.addObserver(this); // for notifications
             initialize();
         } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
         return true;
