@@ -115,6 +115,7 @@ public class ReservationStore {
                 Reservation reservation = new Reservation();
                 String[] entries = line.split(",");
                 for (String entry : entries) {
+                    //System.out.println(entry);
 
                     String[] item = entry.split("=");
                     String key = item[0];
@@ -192,9 +193,10 @@ public class ReservationStore {
 
                     bw.write("name=" + rsvp.getCustomerName() +
                             ",vehicle=" + rsvp.getVehicleID() +
-                            ",start= " + startDate + ",end=" + endDate +
+                            ",start=" + startDate + ",end=" + endDate +
                             ",paid=" + String.valueOf(rsvp.getIsPaid()) +
-                            ",spot=" + rsvp.getSpotId().toString() + "\n");
+                            //",spot=" + rsvp.getSpotId().toString() + "\n");
+                            ",spot=" + rsvp.getSpotId().toString() + System.lineSeparator());
                 }
             }
 
