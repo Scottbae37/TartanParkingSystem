@@ -506,7 +506,7 @@ int GetParkingStall1State() {
    Serial.print("  Stall 1 = ");
    Serial.println(Stall1SensorVal);
 
-   if(Stall1SensorVal > THRESHOLD)
+   if(Stall1SensorVal < THRESHOLD)
 		return OCCUPIED;
    //if(abs(PrevStall1Val - Stall1SensorVal) > 5) {
    //   return OCCUPIED;
@@ -538,7 +538,7 @@ int GetParkingStall2State() {
 
    Serial.println(Stall2SensorVal);
 
-   if(Stall2SensorVal > THRESHOLD)
+   if(Stall2SensorVal < THRESHOLD)
 		return OCCUPIED;
    //if(abs(PrevStall2Val - Stall2SensorVal) > 5) {
      // return OCCUPIED;
@@ -570,7 +570,7 @@ int GetParkingStall3State() {
 
    Serial.println(Stall3SensorVal);
 
-   if(Stall3SensorVal > THRESHOLD)
+   if(Stall3SensorVal < THRESHOLD)
 		return OCCUPIED;
    //if(abs(PrevStall3Val - Stall3SensorVal) > 5) {
      // return OCCUPIED;
@@ -602,7 +602,7 @@ int GetParkingStall4State() {
    Serial.print("  Stall 4 = ");
    Serial.println(Stall4SensorVal);
 
-   if(Stall4SensorVal > THRESHOLD)
+   if(Stall4SensorVal < THRESHOLD)
 		return OCCUPIED;
 
    //if(abs(PrevStall4Val - Stall4SensorVal) > 5) {
