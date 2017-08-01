@@ -1,5 +1,7 @@
 package edu.cmu.tartan.integrationtest;
 
+import edu.cmu.tartan.TartanGarageDriver;
+import edu.cmu.tartan.TartanKioskWindow;
 import edu.cmu.tartan.hardware.TartanGarageConnection;
 import edu.cmu.tartan.hardware.TartanGarageManager;
 import edu.cmu.tartan.hardware.TartanSensors;
@@ -17,13 +19,16 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
+import javax.jms.ObjectMessage;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import static org.mockito.Matchers.anyString;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({TartanServiceMessageBus.class, TartanGarageManager.class, TartanGarageConnection.class})
+@PrepareForTest({TartanServiceMessageBus.class, TartanGarageManager.class, TartanGarageConnection.class, TartanGarageDriver.class, TartanKioskWindow.class})
 public class GarageEntryTest {
     private TartanServiceMessageBus msgBus;
     private MessageConsumer consumer;
@@ -32,10 +37,17 @@ public class GarageEntryTest {
     private ArrayList<TartanService> services = new ArrayList<>();
     private static TartanGarageConnection connection = null;
     private String bufferReadLine;
+    private TartanGarageDriver garage;
+    private TartanKioskWindow tartanKioskWindow;
 
     @Before
     public void setUp() throws Exception {
 
+        services = new ArrayList<>();
+        garage = new TartanGarageDriver();
+        tartanKioskWindow = PowerMockito.mock(TartanKioskWindow.class);
+        PowerMockito.mockStatic(TartanKioskWindow.class);
+        PowerMockito.whenNew(TartanKioskWindow.class).withArguments(KioskService.class).thenReturn(tartanKioskWindow);
         msgBus = PowerMockito.mock(TartanServiceMessageBus.class);
         consumer = PowerMockito.mock(MessageConsumer.class);
         producer = PowerMockito.mock(MessageProducer.class);
@@ -47,12 +59,27 @@ public class GarageEntryTest {
         connection = PowerMockito.mock(TartanGarageConnection.class);
         PowerMockito.mockStatic(TartanGarageConnection.class);
 
-        String settings[] = {"exec", "address"};
+        String settings[] = {"./", "address"};
         Mockito.when(connection.connect(settings[1])).thenReturn(true);
         Mockito.when(connection.isConnected()).thenReturn(true);
         PowerMockito.when(TartanGarageConnection.getConnection(settings[1])).thenReturn(connection);
 
-        bufferReadLine = "SU:NG=0;XG=0;NL=R;NIR=0;XIR=0;XL=R;PO=[1=0,2=0,3=0,4=0];PL=[1=0,2=0,3=0,4=0]";
+        PowerMockito.doAnswer(new Answer<ObjectMessage>() {
+            @Override
+            public ObjectMessage answer(InvocationOnMock invocation) throws Throwable {
+                Object[] args = invocation.getArguments();
+                final String target = (String) args[1];
+                final HashMap<String, Object> m = (HashMap<String, Object>) args[0];
+                for (TartanService service : services) {
+                    if (service.getClass().getName().contains(target)) {
+                        System.out.println("Mock bus : " + target + ", " + m);
+                        service.handleMessage(m);
+                    }
+                }
+                return null;
+            }
+        }).when(msgBus, "generateMessage", Mockito.any(HashMap.class), Mockito.anyString());
+
         PowerMockito.doAnswer(new Answer<String>() {
             @Override
             public String answer(InvocationOnMock invocation) throws Throwable {
@@ -81,26 +108,17 @@ public class GarageEntryTest {
             }
         }).when(connection, "sendMessageToGarage", anyString());
 
-        startGarage(settings);
-    }
+        garage.startGarage(settings);
+        Field fields[] = garage.getClass().getDeclaredFields();
+        for (Field field : fields) {
+            field.setAccessible(true);
+            services = (ArrayList<TartanService>) field.get(garage);
+        }
 
-    public void startGarage(String[] settings) {
-        KioskService kioskService = new KioskService();
-        services.add(kioskService);
-
-        PaymentService paymentService = new PaymentService();
-        services.add(paymentService);
-
-        ParkingService parkingService = new ParkingService();
-        services.add(parkingService);
-
-        System.out.println("Connecting to " + settings[1]);
-        boolean result = parkingService.connectToGarage(settings[1]);
-        System.out.println("connection result=" + result);
-        if (parkingService.connectToGarage(settings[1])) {
-            new Thread(kioskService).start();
-            new Thread(paymentService).start();
-            new Thread(parkingService).start();
+        for (TartanService service : services) {
+            if (service instanceof KioskService) {
+                ((KioskService) service).setKiosk(tartanKioskWindow);
+            }
         }
     }
 
@@ -114,10 +132,20 @@ public class GarageEntryTest {
 
     @Test
     public void testEntryProcedure_DisplayPayment_IfNotPaid() throws Exception {
-        //connection.sendMessageToGarage();
-        bufferReadLine = "SU:NG=0;XG=0;NL=R;NIR=1;XIR=0;XL=R;PO=[1=0,2=0,3=0,4=0];PL=[1=0,2=0,3=0,4=0]";
         try {
+
+            //Car was arrived at entry.
+            bufferReadLine = "SU:NG=0;XG=0;NL=R;NIR=1;XIR=0;XL=R;PO=[1=0,2=0,3=0,4=0];PL=[1=0,2=0,3=0,4=0]";
             Thread.sleep(5000);
+            Mockito.verify(tartanKioskWindow).setStatus(Mockito.any(HashMap.class));
+            Mockito.verify(tartanKioskWindow).enableRsvpRedemption();
+            System.out.println("Redeem is enabled.");
+
+            //Car was gone without redeem.
+            bufferReadLine = "SU:NG=0;XG=0;NL=R;NIR=0;XIR=0;XL=R;PO=[1=0,2=0,3=0,4=0];PL=[1=0,2=0,3=0,4=0]";
+            Thread.sleep(5000);
+            Mockito.verify(tartanKioskWindow, Mockito.atMost(2)).setStatus(Mockito.any(HashMap.class));
+            Mockito.verify(tartanKioskWindow, Mockito.atMost(2)).disableRsvpRedemption();
         } catch (InterruptedException ie) {
         }
 

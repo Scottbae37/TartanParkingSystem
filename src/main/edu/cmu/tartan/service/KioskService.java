@@ -9,7 +9,7 @@ import java.util.*;
 
 /**
  * The KioskService is the Tartan service that connects the system to the user.
- *
+ * <p>
  * Project: LG Exec Ed SDET Program
  * Copyright: 2017 Jeffrey S. Gennari
  * Versions:
@@ -65,6 +65,9 @@ public class KioskService extends TartanService {
         } else if (cmd.equals(TartanParams.MSG_VEHICLE_AT_ENTRY)) {
             kiosk.setStatus(message);
             kiosk.enableRsvpRedemption();
+        } else if(cmd.equals(TartanParams.MSG_VEHICLE_OUT_ENTRY)) {
+            kiosk.setStatus(message);
+            kiosk.disableRsvpRedemption();
         } else if (cmd.equals(TartanParams.MSG_VEHICLE_AT_EXIT)) {
             kiosk.setStatus(message);
             handleParkingExit(message);
@@ -351,7 +354,7 @@ public class KioskService extends TartanService {
         }
     }
 
-    private void sendMessageForReservationComplete(Reservation selectedRsvp){
+    private void sendMessageForReservationComplete(Reservation selectedRsvp) {
         // Mark the reservation complete
         HashMap<String, Object> completeMessage = new HashMap<String, Object>();
         completeMessage.put(TartanParams.COMMAND, TartanParams.MSG_COMPLETE_RSVP);

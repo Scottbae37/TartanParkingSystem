@@ -393,6 +393,8 @@ public class TartanGarageManager extends Observable {
                     }
                     if (vehicleDetectedAtEntry(currentState)) {
                         alertVehicleAtEntry();
+                    } else {
+                        alertVehicleOutEntry();
                     }
                     if (vehicleDetectedAtExit(currentState)) {
                         alertVehicleAtExit();
@@ -421,6 +423,14 @@ public class TartanGarageManager extends Observable {
         notifyObservers(TartanParams.MSG_VEHICLE_AT_ENTRY);
     }
 
+    private void alertVehicleOutEntry() {
+
+        // The only observer should be the parking service
+        setChanged();
+
+
+        notifyObservers(TartanParams.MSG_VEHICLE_OUT_ENTRY);
+    }
 
     /**
      * Notify vehicle at exit gate. Note that this method notifies all parties who care
