@@ -1,5 +1,7 @@
 package edu.cmu.tartan.edu.cmu.tartan.reservation;
 
+import edu.cmu.tartan.TartanUtils;
+
 import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -99,8 +101,6 @@ public class Payment implements Serializable {
         return fee;
     }
 
-    static final Predicate<String> IS_EMPTY = (s) -> Objects.isNull(s) || s.isEmpty();
-
     /**
      * Check to see if the payment is valid. This method simply checks that all the required information
      * has been supplied
@@ -109,7 +109,9 @@ public class Payment implements Serializable {
      */
     public boolean isValid() {
         // original logic
-        if (IS_EMPTY.test(ccNum) || IS_EMPTY.test(ccExpDate) || IS_EMPTY.test(ccName))
+        if (TartanUtils.IS_EMPTY.test(ccNum)
+                || TartanUtils.IS_EMPTY.test(ccExpDate)
+                || TartanUtils.IS_EMPTY.test(ccName))
             return false;
 
         int localMonth = YearMonth.now().getMonthValue();

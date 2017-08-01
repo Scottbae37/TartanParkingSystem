@@ -137,10 +137,10 @@ public class PaymentDialog extends JDialog {
         String ccNum = p.getCcNum();
         String ccName = p.getCcName();
 
-        if (Objects.isNull(ccNum) == true || ccNum.isEmpty()) {
+        if (TartanUtils.IS_EMPTY.test(ccNum)) {
             is = false;
             msg = "Invalid card number, check it now!";
-        } else if (Objects.isNull(ccName) == true || ccName.isEmpty()) {
+        } else if (TartanUtils.IS_EMPTY.test(ccName)) {
             is = false;
             msg = "Invalid name, check it now!";
         }  else if (Objects.isNull(mRsvp) == false && ccName.equals(mRsvp.getCustomerName()) == false) {
