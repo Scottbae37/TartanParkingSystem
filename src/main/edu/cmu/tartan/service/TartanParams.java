@@ -20,6 +20,7 @@ public interface TartanParams {
     // System commands
     public final static String MSG_NEW_RSVP = "NewRsvp";
     public final static String MSG_VEHICLE_AT_ENTRY = "VehicleArrived";
+    public final static String MSG_VEHICLE_OUT_ENTRY = "VehicleLeaved";
     public final static String MSG_VEHICLE_AT_EXIT = "VehicleDeparted";
     public final static String MSG_ENTRY_COMPLETE = "EntryComplete";
     public final static String MSG_EXIT_COMPLETE = "ExitComplete";

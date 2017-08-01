@@ -53,6 +53,8 @@ public class ParkingService extends TartanService implements Observer {
         String cmd = (String) obj;
         if (cmd.equals(TartanParams.MSG_VEHICLE_AT_ENTRY)) {
             signalVehicleArrived();
+        } else if(cmd.equals(TartanParams.MSG_VEHICLE_OUT_ENTRY)) {
+            signalVehicleLeaved();
         } else if (cmd.equals(TartanParams.MSG_VEHICLE_AT_EXIT)) {
             signalVehicleReadyToLeave();
         }
@@ -76,6 +78,14 @@ public class ParkingService extends TartanService implements Observer {
         System.out.println("ParkingService.signalVehicleArrived");
         HashMap<String, Object> body = new HashMap<String, Object>();
         body.put(TartanParams.COMMAND, TartanParams.MSG_VEHICLE_AT_ENTRY);
+        body.put(TartanParams.ACTUAL_SPOT, garageManager.getSpotOccupiedState());
+        sendMessage(KioskService.KIOSK_SERVICE, body);
+    }
+
+    private void signalVehicleLeaved() {
+        System.out.println("ParkingService.signalVehicleLeaved");
+        HashMap<String, Object> body = new HashMap<String, Object>();
+        body.put(TartanParams.COMMAND, TartanParams.MSG_VEHICLE_OUT_ENTRY);
         body.put(TartanParams.ACTUAL_SPOT, garageManager.getSpotOccupiedState());
         sendMessage(KioskService.KIOSK_SERVICE, body);
     }
