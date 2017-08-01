@@ -323,7 +323,13 @@ public class TartanGarageManager extends Observable {
                         String spotInfo[] = t.split(TartanSensors.PARAM_EQ);
                         lightState[Integer.parseInt(spotInfo[0])] = Integer.parseInt(spotInfo[1]);
                     }
-                    currentState.put(TartanSensors.PARKING_SPOT_LIGHT, lightState);
+                    ArrayList<Integer> temp = new ArrayList<>();
+                    for (int i = 0; i < lightState.length; i++) {
+                        if (lightState[i] != null) {
+                            temp.add(lightState[i]);
+                        }
+                    }
+                    currentState.put(TartanSensors.PARKING_SPOT_LIGHT, (Integer[]) temp.toArray(new Integer[temp.size()]));
                 } else if (pcmd.equals(TartanSensors.PARKING_SPOT_OCCUPIED)) {
 
                     Integer[] occupiedState = new Integer[10];
@@ -335,7 +341,13 @@ public class TartanGarageManager extends Observable {
                         String spotInfo[] = t.split(TartanSensors.PARAM_EQ);
                         occupiedState[Integer.parseInt(spotInfo[0]) - 1] = Integer.parseInt(spotInfo[1]);
                     }
-                    currentState.put(TartanSensors.PARKING_SPOT_OCCUPIED, occupiedState);
+                    ArrayList<Integer> temp = new ArrayList<>();
+                    for (int i = 0; i < occupiedState.length; i++) {
+                        if (occupiedState[i] != null) {
+                            temp.add(occupiedState[i]);
+                        }
+                    }
+                    currentState.put(TartanSensors.PARKING_SPOT_OCCUPIED, (Integer[]) temp.toArray(new Integer[temp.size()]));
                 }
             }
         }
