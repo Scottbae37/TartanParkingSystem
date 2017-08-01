@@ -8,6 +8,8 @@ import java.time.YearMonth;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.function.Predicate;
 
 /**
  * Payments represent payment information, such as credit card number, expiration date
@@ -97,16 +99,17 @@ public class Payment implements Serializable {
         return fee;
     }
 
+    static final Predicate<String> IS_EMPTY = (s) -> Objects.isNull(s) || s.isEmpty();
+
     /**
      * Check to see if the payment is valid. This method simply checks that all the required information
      * has been supplied
      *
      * @return true if valid, false otherwise
      */
-    public Boolean isValid() {
-
+    public boolean isValid() {
         // original logic
-        if(ccNum == null || ccExpDate == null || ccName == null)
+        if (IS_EMPTY.test(ccNum) || IS_EMPTY.test(ccExpDate) || IS_EMPTY.test(ccName))
             return false;
 
         int localMonth = YearMonth.now().getMonthValue();

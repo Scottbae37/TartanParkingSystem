@@ -5,9 +5,7 @@ import edu.cmu.tartan.edu.cmu.tartan.reservation.Payment;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.Reservation;
 
 import javax.swing.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Vector;
+import java.util.*;
 
 /**
  * The KioskService is the Tartan service that connects the system to the user.
@@ -255,10 +253,11 @@ public class KioskService extends TartanService {
      */
     private void handleNewReservation(HashMap<String, Object> message) {
 
-        Payment payment = kiosk.acceptPayment();
 
         // if the payment is deferred, mark that in the RSVP and proceed
         Reservation rsvp = (Reservation) message.get(TartanParams.PAYLOAD);
+        Payment payment = kiosk.acceptPayment(rsvp);
+
         if (payment == null) {
             rsvp.setIsPaid(false);
 
@@ -311,16 +310,25 @@ public class KioskService extends TartanService {
         if (selectedRsvp == null) {
             return;
         }
+
+        if (Calendar.getInstance().after(selectedRsvp.getEndTime())) {
+            showDialog("Invalid Payment try",
+                    "payment date has been already exceeded.\n This reservation will be removed.");
+            sendMessageForReservationComplete(selectedRsvp);
+            return;
+        }
+
         selectedRsvp.setIsRedeemed(true);
 
         // if the reservation has not been paid for, then pay for it now.
         if (selectedRsvp.getIsPaid() == false) {
             JOptionPane.showMessageDialog(kiosk, "You must pay for this reservation now", "Payment Required", JOptionPane.INFORMATION_MESSAGE);
 
-            Payment payment = kiosk.acceptPayment();
-
-            if (payment == null) {
-                payment = kiosk.acceptPayment();
+            Payment payment = kiosk.acceptPayment(selectedRsvp);
+            if (Objects.isNull(payment) == true) {
+                showDialog("Payment Required",
+                        "You must pay for this reservation .\nNot allowed to enter!\n");
+                return;
             }
 
             selectedRsvp.setIsPaid(true);
@@ -330,7 +338,6 @@ public class KioskService extends TartanService {
             selectedRsvp.setPayment(payment);
 
             sendPaymentInfo(payment);
-
         } else {
             kiosk.redeemReservation(selectedRsvp);
 
@@ -340,13 +347,23 @@ public class KioskService extends TartanService {
             sendMessage(ParkingService.PARKING_SERVICE, msg);
 
             // Mark the reservation complete
-            HashMap<String, Object> completeMessage = new HashMap<String, Object>();
-            completeMessage.put(TartanParams.COMMAND, TartanParams.MSG_COMPLETE_RSVP);
-            completeMessage.put(TartanParams.PAYLOAD, selectedRsvp);
-            sendMessage(ReservationService.RESERVATION_SERVICE, completeMessage);
+            sendMessageForReservationComplete(selectedRsvp);
         }
     }
 
+    private void sendMessageForReservationComplete(Reservation selectedRsvp){
+        // Mark the reservation complete
+        HashMap<String, Object> completeMessage = new HashMap<String, Object>();
+        completeMessage.put(TartanParams.COMMAND, TartanParams.MSG_COMPLETE_RSVP);
+        completeMessage.put(TartanParams.PAYLOAD, selectedRsvp);
+        sendMessage(ReservationService.RESERVATION_SERVICE, completeMessage);
+    }
+
+    private void showDialog(String title, String msg) {
+        JOptionPane.showMessageDialog(kiosk,
+                msg, title,
+                JOptionPane.ERROR_MESSAGE);
+    }
 
     /**
      * Service running.
