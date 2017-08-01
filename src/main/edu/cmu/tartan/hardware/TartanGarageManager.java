@@ -206,6 +206,7 @@ public class TartanGarageManager extends Observable {
 
         synchronized (connection) {
             String update = connection.sendMessageToGarage(TartanSensors.GET_STATE + TartanSensors.MSG_END);
+            System.out.println("=== updateState=" + update);
             if (update == null) {
                 return;
             }

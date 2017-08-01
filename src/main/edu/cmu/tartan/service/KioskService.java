@@ -56,9 +56,9 @@ public class KioskService extends TartanService {
      */
     @Override
     public void handleMessage(HashMap<String, Object> message) {
-        System.out.println("KioskService.handleMessage");
 
         String cmd = (String) message.get(TartanParams.COMMAND);
+        System.out.println("KioskService.handleMessage, cmd=" + cmd);
 
         if (cmd.equals(TartanParams.MSG_REDEEM_RSVP)) {
             handleRedeemReservation(message);

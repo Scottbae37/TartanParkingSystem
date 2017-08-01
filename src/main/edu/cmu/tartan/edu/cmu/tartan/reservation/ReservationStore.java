@@ -92,6 +92,11 @@ public class ReservationStore {
      * @return True when the reservation is added.
      */
     public Boolean addReservation(Reservation r) {
+        for (Reservation reservation : reservations) {
+            if (reservation.equals(r)) {
+                return false;
+            }
+        }
         reservations.add(r);
         return true;
     }
