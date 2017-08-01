@@ -81,7 +81,7 @@ public class PaymentCorrectTest {
         rsvp.setEndTime("2017:08:07:17:00");
 
         long result = Whitebox.invokeMethod(paymentService, "computeTotalFee", rsvp);
-        Assert.assertEquals(245, result);
+        Assert.assertEquals(15, result);
     }
 
     @org.junit.Test
