@@ -101,10 +101,6 @@ long ParkingStall4LEDState;
 #define ParkingStall2LED  23
 #define ParkingStall3LED  24
 #define ParkingStall4LED  25
-#define ParkingStall1LED  22
-#define ParkingStall2LED  23
-#define ParkingStall3LED  24
-#define ParkingStall4LED  25
 
 // Parameters for the entry/exit IR sensors
 #define EntryBeamRcvr  34 
