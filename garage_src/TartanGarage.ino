@@ -903,8 +903,8 @@ String ToggleParkingLights(String newState)
 
    String body[20];
    int counter = 0;
-  
-   int i=0;
+
+   unsigned int i=0;
    String param = "";
    while (i < newSettings.length()) { 
       char c = newSettings.charAt(i);
