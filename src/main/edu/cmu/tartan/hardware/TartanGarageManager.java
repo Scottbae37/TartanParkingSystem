@@ -410,6 +410,8 @@ public class TartanGarageManager extends Observable {
                     }
                     if (vehicleDetectedAtExit(currentState)) {
                         alertVehicleAtExit();
+                    } else {
+                        alertVehicleReturn();
                     }
                     // currently a 5sec delay
                     try {
@@ -451,6 +453,11 @@ public class TartanGarageManager extends Observable {
     private void alertVehicleAtExit() {
         setChanged();
         notifyObservers(TartanParams.MSG_VEHICLE_AT_EXIT);
+    }
+
+    private void alertVehicleReturn() {
+        setChanged();
+        notifyObservers(TartanParams.MSG_VEHICLE_RETURN);
     }
 
     /**

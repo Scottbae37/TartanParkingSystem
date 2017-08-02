@@ -131,6 +131,9 @@ public class GarageEntryTest {
         Field fields[] = garage.getClass().getDeclaredFields();
         for (Field field : fields) {
             field.setAccessible(true);
+            if (field.getType() != ArrayList.class) {
+                continue;
+            }
             services = (ArrayList<TartanService>) field.get(garage);
         }
 
