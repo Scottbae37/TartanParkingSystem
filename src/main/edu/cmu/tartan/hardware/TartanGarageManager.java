@@ -27,6 +27,8 @@ public class TartanGarageManager extends Observable {
      */
     protected Thread updateThread = null;
 
+    private boolean isEntryOn;
+    private boolean isExitOn;
     /**
      * the currentState of the garage, updated every 5 seconds
      */
@@ -406,13 +408,21 @@ public class TartanGarageManager extends Observable {
                     }
                     if (vehicleDetectedAtEntry(currentState)) {
                         alertVehicleAtEntry();
+                        isEntryOn = true;
                     } else {
-                        alertVehicleOutEntry();
+                        if (isEntryOn) {
+                            alertVehicleOutEntry();
+                            isEntryOn = false;
+                        }
                     }
                     if (vehicleDetectedAtExit(currentState)) {
                         alertVehicleAtExit();
+                        isExitOn = true;
                     } else {
-                        alertVehicleReturn();
+                        if (isExitOn) {
+                            alertVehicleReturn();
+                            isExitOn = false;
+                        }
                     }
                     // currently a 5sec delay
                     try {
