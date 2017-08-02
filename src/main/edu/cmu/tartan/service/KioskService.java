@@ -28,6 +28,8 @@ public class KioskService extends TartanService {
     private TartanKioskWindow kiosk = null;
 
 
+    private boolean isCarReturned = false;
+
     /**
      * Default constructor
      */
@@ -71,6 +73,9 @@ public class KioskService extends TartanService {
         } else if (cmd.equals(TartanParams.MSG_VEHICLE_AT_EXIT)) {
             kiosk.setStatus(message);
             handleParkingExit(message);
+        } else if (cmd.equals(TartanParams.MSG_VEHICLE_RETURN)) {
+            kiosk.setStatus(message);
+            isCarReturned = true;
         } else if (cmd.equals(TartanParams.MSG_WRONG_SPOT)) {
             handleParkingError(message);
         } else if (cmd.equals(TartanParams.MSG_NEW_RSVP)) {
@@ -122,7 +127,7 @@ public class KioskService extends TartanService {
     }
 
     private void handleParkingExit(HashMap<String, Object> message) {
-
+        isCarReturned = false;
 //        Boolean state = false;
 //        if (message.containsKey(TartanParams.PAYLOAD)) {
 //            HashMap<String, Object> body = (HashMap<String, Object>) message.get(TartanParams.PAYLOAD);
@@ -135,7 +140,7 @@ public class KioskService extends TartanService {
 //        if (state == false) {
 //            vid =
 //        }
-        if (vid != null && ("".equals(vid) == false)) {
+        if (vid != null && ("".equals(vid) == false) && !isCarReturned) {
 
             HashMap<String, Object> msg = new HashMap<String, Object>();
             msg.put(TartanParams.COMMAND, TartanParams.MSG_EXIT_GARAGE);
@@ -143,7 +148,11 @@ public class KioskService extends TartanService {
             sendMessage(ParkingService.PARKING_SERVICE, msg);
 
         } else {
-            JOptionPane.showMessageDialog(kiosk, "You must enter a valid vehicle ID", "Invalid Vehicle", JOptionPane.ERROR_MESSAGE);
+            if (isCarReturned) {
+                JOptionPane.showMessageDialog(kiosk, "Car is return from exit.", "Invalid Vehicle", JOptionPane.ERROR_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(kiosk, "You must enter a valid vehicle ID", "Invalid Vehicle", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
@@ -401,6 +410,7 @@ public class KioskService extends TartanService {
         } else if (licensePlate != null) {
             body.put(TartanParams.VEHICLE, licensePlate);
         }
+
 
         sendMessage(ReservationService.RESERVATION_SERVICE, body);
 
