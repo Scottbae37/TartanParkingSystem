@@ -162,15 +162,48 @@ public class GarageEntryTest {
             //Car was arrived at entry.
             bufferReadLine = "SU:NG=0;XG=0;NL=R;NIR=1;XIR=0;XL=R;PO=[1=0,2=0,3=0,4=0];PL=[1=0,2=0,3=0,4=0]";
             Thread.sleep(5000);
-            Mockito.verify(tartanKioskWindow, Mockito.atMost(2)).setStatus(Mockito.any(HashMap.class));
-            Mockito.verify(tartanKioskWindow, Mockito.atMost(2)).enableRsvpRedemption();
+            Mockito.verify(tartanKioskWindow, Mockito.atLeast(1)).setStatus(Mockito.any(HashMap.class));
+            Mockito.verify(tartanKioskWindow, Mockito.atLeast(1)).enableRsvpRedemption();
             System.out.println("Redeem is enabled.");
 
             //Car was gone without redeem.
             bufferReadLine = "SU:NG=0;XG=0;NL=R;NIR=0;XIR=0;XL=R;PO=[1=0,2=0,3=0,4=0];PL=[1=0,2=0,3=0,4=0]";
             Thread.sleep(5000);
-            Mockito.verify(tartanKioskWindow, Mockito.atMost(3)).setStatus(Mockito.any(HashMap.class));
-            Mockito.verify(tartanKioskWindow, Mockito.atMost(3)).disableRsvpRedemption();
+            Mockito.verify(tartanKioskWindow, Mockito.atLeast(2)).setStatus(Mockito.any(HashMap.class));
+            Mockito.verify(tartanKioskWindow, Mockito.atLeast(2)).disableRsvpRedemption();
+        } catch (InterruptedException ie) {
+        }
+    }
+
+    @Test
+    public void testEntryProcedure_ReturnWithOutPay() throws Exception {
+        try {
+            Thread.sleep(500);
+            PowerMockito.mockStatic(JOptionPane.class);
+            PowerMockito.doAnswer(new Answer<String>() {
+                @Override
+                public String answer(InvocationOnMock invocation) throws Throwable {
+                    try {
+                        //car was returned without exit
+                        bufferReadLine = "SU:NG=0;XG=0;NL=R;NIR=0;XIR=0;XL=R;PO=[1=0,2=0,3=0,4=0];PL=[1=0,2=0,3=0,4=0]";
+                        Thread.sleep(6000);
+                        Mockito.verify(tartanKioskWindow, Mockito.atLeast(2)).setStatus(Mockito.any(HashMap.class));
+                        ArgumentCaptor<String> command = ArgumentCaptor.forClass(String.class);
+                        Mockito.verify(tartanKioskWindow).showError(command.capture());
+                        Assert.assertTrue(command.getValue().contains("return"));
+                    } catch (Exception e) {
+                    }
+                    return "IntegrationTest";
+                }
+            }).when(JOptionPane.class, "showInputDialog", Mockito.any(Component.class),
+                    Mockito.any(Object.class), Mockito.anyString(), Mockito.anyInt());
+
+            //Car was arrived at exit.
+            bufferReadLine = "SU:NG=0;XG=0;NL=R;NIR=0;XIR=1;XL=R;PO=[1=0,2=0,3=0,4=0];PL=[1=0,2=0,3=0,4=0]";
+            Thread.sleep(5000);
+            Mockito.verify(tartanKioskWindow, Mockito.atLeast(1)).setStatus(Mockito.any(HashMap.class));
+            PowerMockito.verifyStatic(Mockito.times(1));
+            System.out.println("Exit vehicle dialog show");
         } catch (InterruptedException ie) {
         }
     }
@@ -184,8 +217,8 @@ public class GarageEntryTest {
             //Car was arrived at entry.
             bufferReadLine = "SU:NG=0;XG=0;NL=R;NIR=1;XIR=0;XL=R;PO=[1=0,2=0,3=0,4=0];PL=[1=0,2=0,3=0,4=0]";
             Thread.sleep(5000);
-            Mockito.verify(tartanKioskWindow, Mockito.atMost(2)).setStatus(Mockito.any(HashMap.class));
-            Mockito.verify(tartanKioskWindow, Mockito.atMost(2)).enableRsvpRedemption();
+            Mockito.verify(tartanKioskWindow, Mockito.atLeast(1)).setStatus(Mockito.any(HashMap.class));
+            Mockito.verify(tartanKioskWindow, Mockito.atLeast(1)).enableRsvpRedemption();
             System.out.println("Redeem is enabled.");
             kioskService.getReservation("IntegrationTest", "IntegrationTest");
 
