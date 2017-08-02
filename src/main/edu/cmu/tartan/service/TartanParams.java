@@ -43,6 +43,7 @@ public interface TartanParams {
     public final static String MSG_AUTHENTICATION_RESULT = "AuthenticateResult";
     public final static String MSG_GET_STATISTICAL_DATA = "GetStatisticalData";
     public final static String MSG_STATISTICAL_DATA_RESULT = "StatisticalDataResult";
+    public final static String MSG_EXIT_STATE = "ExitGarageState";
 
     // Command specific parameters
     public static final String RSVP = "Rsvp";
@@ -52,7 +53,7 @@ public interface TartanParams {
     public static final String REVENUE = "Revenue";
     public static final String AVERAGE_OCCUPANCY = "AverageOccupancy";
     public static final String PEAK_USAGE_HOURS = "PeakUsageHours";
-    //public static final String EXIT_STATE = "ExitState";
+    public static final String EXIT_STATE = "ExitState";
 
     // Symbolic constants for understandability
     public static final Integer INVALID_SPOT = -1;

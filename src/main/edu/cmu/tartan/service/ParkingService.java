@@ -387,6 +387,11 @@ public class ParkingService extends TartanService implements Observer {
 
         if (leavingVehicle) {
             applyPayment(vid);
+        }else{
+            HashMap<String, Object> exitFailedMsg = new HashMap<String, Object>();
+            exitFailedMsg.put(TartanParams.COMMAND, TartanParams.MSG_EXIT_STATE);
+            exitFailedMsg.put(TartanParams.EXIT_STATE, true);
+            sendMessage(KioskService.KIOSK_SERVICE, exitFailedMsg);
         }
     }
 
