@@ -171,11 +171,10 @@ void loop() {
       }
       client.stop();
       /* Additional procedure when When Tartan Parking System is disconnected:
-       * We open Entry/Exit gates when disconnection to kiosk.
-       * We don't want keep customer in garage.
-       * When disconnected, Manual operation is required. all payments be handled by human.
-       * */
-      OpenEntryGate();
+      * We open Entry/Exit gates when disconnection to kiosk.
+      * We don't want keep customer in garage.
+      * When disconnected, Manual operation is required. all payments be handled by human.
+      * */
       OpenExitGate();
       Serial.println("Done!");
       Serial.println(".....................");
