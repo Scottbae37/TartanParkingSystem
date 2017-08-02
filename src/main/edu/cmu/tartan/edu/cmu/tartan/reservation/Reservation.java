@@ -1,5 +1,6 @@
 package edu.cmu.tartan.edu.cmu.tartan.reservation;
 
+import edu.cmu.tartan.TartanUtils;
 import edu.cmu.tartan.service.TartanParams;
 
 import java.io.Serializable;
@@ -92,7 +93,10 @@ public class Reservation implements Serializable{
      * @return true if complete, false otherwise.
      */
     public Boolean isComplete() {
-        return  startTime != null && endTime != null && customerName != null && vehicleID != null && spotId.compareTo(TartanParams.INVALID_SPOT) != 0;
+        return startTime != null && endTime != null
+                && TartanUtils.IS_EMPTY.test(customerName) == false
+                && TartanUtils.IS_EMPTY.test(vehicleID) == false
+                && spotId.compareTo(TartanParams.INVALID_SPOT) != 0;
     }
 
     /**

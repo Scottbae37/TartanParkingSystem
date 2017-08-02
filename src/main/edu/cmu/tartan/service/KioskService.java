@@ -1,6 +1,7 @@
 package edu.cmu.tartan.service;
 
 import edu.cmu.tartan.TartanKioskWindow;
+import edu.cmu.tartan.TartanUtils;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.Payment;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.Reservation;
 
@@ -9,7 +10,7 @@ import java.util.*;
 
 /**
  * The KioskService is the Tartan service that connects the system to the user.
- *
+ * <p>
  * Project: LG Exec Ed SDET Program
  * Copyright: 2017 Jeffrey S. Gennari
  * Versions:
@@ -27,6 +28,12 @@ public class KioskService extends TartanService {
      */
     private TartanKioskWindow kiosk = null;
 
+    /** @isExitOperationOn
+     * If on, exit operation is activated
+     * If off, exit operation is deactivated, so Kiosk doesn't show popup to get v-id until the vehicle exit is done.
+     * */
+    private Boolean isExitOperationOn;
+    private boolean isCarReturned = false;
 
     /**
      * Default constructor
@@ -34,7 +41,7 @@ public class KioskService extends TartanService {
     public KioskService() {
 
         super.init(KIOSK_SERVICE);
-
+        isExitOperationOn = true;
         // status = TartanServiceStatus.STOPPED;
     }
 
@@ -65,9 +72,15 @@ public class KioskService extends TartanService {
         } else if (cmd.equals(TartanParams.MSG_VEHICLE_AT_ENTRY)) {
             kiosk.setStatus(message);
             kiosk.enableRsvpRedemption();
+        } else if(cmd.equals(TartanParams.MSG_VEHICLE_OUT_ENTRY)) {
+            kiosk.setStatus(message);
+            kiosk.disableRsvpRedemption();
         } else if (cmd.equals(TartanParams.MSG_VEHICLE_AT_EXIT)) {
             kiosk.setStatus(message);
             handleParkingExit(message);
+        } else if (cmd.equals(TartanParams.MSG_VEHICLE_RETURN)) {
+            kiosk.setStatus(message);
+            isCarReturned = true;
         } else if (cmd.equals(TartanParams.MSG_WRONG_SPOT)) {
             handleParkingError(message);
         } else if (cmd.equals(TartanParams.MSG_NEW_RSVP)) {
@@ -90,6 +103,9 @@ public class KioskService extends TartanService {
             handleAuthResult(message);
         } else if (cmd.equals(TartanParams.MSG_STATISTICAL_DATA_RESULT)) {
             handleAdminConsole(message);
+        } else if (cmd.equals(TartanParams.MSG_EXIT_STATE))
+        {
+            handleParkingExitState(message);
         }
     }
 
@@ -114,33 +130,33 @@ public class KioskService extends TartanService {
     }
 
     private void handleExitComplete(HashMap<String, Object> message) {
+        /* 이미, ParkingService에서 10초간 출자 시간이 주어짐. */
+        /* 성공할 경우, 영수증 보여주고 Exit entry 센서에 반응하게 해야함 */
         Reservation rsvp = (Reservation) message.get(TartanParams.PAYLOAD);
         kiosk.showReceipt(rsvp);
+        isExitOperationOn = true;
+    }
+
+    private void handleParkingExitState(HashMap<String, Object> message){
+        isExitOperationOn = (Boolean) message.get(TartanParams.EXIT_STATE);
+
     }
 
     private void handleParkingExit(HashMap<String, Object> message) {
-
-//        Boolean state = false;
-//        if (message.containsKey(TartanParams.PAYLOAD)) {
-//            HashMap<String, Object> body = (HashMap<String, Object>) message.get(TartanParams.PAYLOAD);
-//            if (body.containsKey(TartanParams.EXIT_STATE)) {
-//                state = (Boolean) body.get(TartanParams.EXIT_STATE);
-//            }
-//        }
-
-        String vid = JOptionPane.showInputDialog(kiosk, "Enter vehicle ID to exit", "Exit", JOptionPane.QUESTION_MESSAGE);
-//        if (state == false) {
+        if (isExitOperationOn == true) {
+            isExitOperationOn = false;
+            isCarReturned = false;
+            String vid = JOptionPane.showInputDialog(kiosk, "Enter vehicle ID to exit", "Exit", JOptionPane.QUESTION_MESSAGE);
 //            vid =
-//        }
-        if (vid != null && ("".equals(vid) == false)) {
-
-            HashMap<String, Object> msg = new HashMap<String, Object>();
-            msg.put(TartanParams.COMMAND, TartanParams.MSG_EXIT_GARAGE);
-            msg.put(TartanParams.PAYLOAD, vid);
-            sendMessage(ParkingService.PARKING_SERVICE, msg);
-
-        } else {
-            JOptionPane.showMessageDialog(kiosk, "You must enter a valid vehicle ID", "Invalid Vehicle", JOptionPane.ERROR_MESSAGE);
+            if (vid != null && ("".equals(vid) == false) && !isCarReturned) {
+                HashMap<String, Object> msg = new HashMap<String, Object>();
+                msg.put(TartanParams.COMMAND, TartanParams.MSG_EXIT_GARAGE);
+                msg.put(TartanParams.PAYLOAD, vid);
+                sendMessage(ParkingService.PARKING_SERVICE, msg);
+            } else {
+                JOptionPane.showMessageDialog(kiosk, "You must enter a valid vehicle ID", "Invalid Vehicle", JOptionPane.ERROR_MESSAGE);
+                isExitOperationOn = true;
+            }
         }
     }
 
@@ -351,7 +367,7 @@ public class KioskService extends TartanService {
         }
     }
 
-    private void sendMessageForReservationComplete(Reservation selectedRsvp){
+    private void sendMessageForReservationComplete(Reservation selectedRsvp) {
         // Mark the reservation complete
         HashMap<String, Object> completeMessage = new HashMap<String, Object>();
         completeMessage.put(TartanParams.COMMAND, TartanParams.MSG_COMPLETE_RSVP);
@@ -390,14 +406,15 @@ public class KioskService extends TartanService {
      */
     public Boolean getReservation(String name, String licensePlate) {
 
-        HashMap<String, Object> body = new HashMap<String, Object>();
+        HashMap<String, Object> body = new HashMap<>();
         body.put(TartanParams.COMMAND, TartanParams.MSG_REDEEM_RSVP);
 
-        if (name != null) {
+        if (TartanUtils.IS_EMPTY.test(name) == false) {
             body.put(TartanParams.CUSTOMER, name);
-        } else if (licensePlate != null) {
+        } else if (TartanUtils.IS_EMPTY.test(licensePlate) == false) {
             body.put(TartanParams.VEHICLE, licensePlate);
         }
+
 
         sendMessage(ReservationService.RESERVATION_SERVICE, body);
 

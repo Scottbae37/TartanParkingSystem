@@ -26,6 +26,7 @@
 #include <Servo.h>
 
 #define PORTID 5050            // IP socket port#
+#define	THRESHOLD 50		   // Car detection
 
 char ssid[] = "LGArchi";       // The network SSID
 int status = WL_IDLE_STATUS;   // Network connection status
@@ -103,43 +104,43 @@ long ParkingStall4LEDState;
 #define ParkingStall4LED  25
 
 // Parameters for the entry/exit IR sensors
-#define EntryBeamRcvr  34 
+#define EntryBeamRcvr  34
 #define ExitBeamRcvr   35
 
 /**
  * Initialization routine
  */
 void setup()
-{  
-   Init();   
+{
+   Init();
 
    // Initialize a serial terminal for debug messages.
    Serial.begin(9600);
    Serial.print("Attempting to connect to SSID: ");
    Serial.println(ssid);
    // Attempt to connect to Wifi network.
-   while ( status != WL_CONNECTED) 
-   { 
+   while ( status != WL_CONNECTED)
+   {
       status = WiFi.begin(ssid);
-   }  
-   
+   }
+
    // Print the basic connection and network information.
    printConnectionStatus();
-   
+
    // Start the server and print and message for the user.
    server.begin();
-   Serial.println("The Server is started."); 
-   
+   Serial.println("The Server is started.");
+
 } // setup
 
 /**
  * The main loop
  */
-void loop() { 
+void loop() {
 
    // Wait for the client:
    WiFiClient client = server.available();
-   
+
    if (client)   {
       String req = "";                // make a String to hold incoming data from the client
       while (client.connected()) {    // loop while the client's connected
@@ -151,18 +152,18 @@ void loop() {
             // Are we at end of message?
             if (c == '.') {
                req += c;
-               
+
                Serial.println("Request: '" + req + "'");
 
                // process the full request and send the response
                String response = ProcessRequest(req);
-               
+
                client.println (response);
                client.flush();
-           
+
                response = "";
                req  = "";
-           
+
             } else {
                req += c;
             }
@@ -170,29 +171,28 @@ void loop() {
       }
       client.stop();
       /* Additional procedure when When Tartan Parking System is disconnected:
-       * We open Entry/Exit gates when disconnection to kiosk.
-       * We don't want keep customer in garage.
-       * When disconnected, Manual operation is required. all payments be handled by human.
-       * */
-      OpenEntryGate();
+      * We open Entry/Exit gates when disconnection to kiosk.
+      * We don't want keep customer in garage.
+      * When disconnected, Manual operation is required. all payments be handled by human.
+      * */
       OpenExitGate();
       Serial.println("Done!");
       Serial.println(".....................");
-     
+
    }
 } // loop
 
 /**
  * void Init()
  *
- * Parameters: None           
- * 
+ * Parameters: None
+ *
  * Description:
  *
  * The entry and exit LEDs are 3 way LEDs with a common annode. This means
  * that you pull the other legs low to lite the appropriate colored LED.
  * The problem is that when you turn on the CPU, the pins are typically low
- * meaning that the LEDs will be on. This method, simply ensures they are 
+ * meaning that the LEDs will be on. This method, simply ensures they are
  * off.
  */
 void Init()
@@ -213,7 +213,7 @@ void Init()
    // Map servo to pin and initialize the gates
    EntryGateServo.attach(EntryGateServoPin);
    ExitGateServo.attach(ExitGateServoPin);
-  
+
    EntryGateServo.write(CloseGate);
    EntryGateState = CLOSE;
    ExitGateServo.write(CloseGate);
@@ -232,16 +232,16 @@ void Init()
    digitalWrite(EntryGateRedLED, HIGH);    // high. The reason for this is that they are
    digitalWrite(ExitGateGreenLED, HIGH);   // 3 color LEDs with a common annode (+). So setting
    digitalWrite(ExitGateRedLED, HIGH);     // any of the other 3 legs low turns on the LED.
-  
+
    digitalWrite(ParkingStall1LED, LOW);    // Standard LEDs are used for the parking stall LEDs. Set the pin high and they light.
    ParkingStall1LEDState = OFF;
-  
+
    digitalWrite(ParkingStall2LED, LOW);
    ParkingStall2LEDState = OFF;
-  
+
    digitalWrite(ParkingStall3LED, LOW);
    ParkingStall3LEDState = OFF;
-  
+
    digitalWrite(ParkingStall4LED, LOW);
    ParkingStall4LEDState = OFF;
 
@@ -253,12 +253,12 @@ void Init()
  *
  * String ProcessRequest()
  *
- * Parameters: the incoming request           
+ * Parameters: the incoming request
  *
  * Description:
- * 
- * This method processes the received message to determine if it is a 
- * set state request or a get state request. The response is returned as a 
+ *
+ * This method processes the received message to determine if it is a
+ * set state request or a get state request. The response is returned as a
  * String
  */
 String  ProcessRequest(String request) {
@@ -268,29 +268,29 @@ String  ProcessRequest(String request) {
    String response = "";
 
    String hdr = request.substring(0,2);
-   String body = request.substring(hdrPosition+1,endPosition);  
-  
+   String body = request.substring(hdrPosition+1,endPosition);
+
    if (hdr == "GS") {
       // a set state request has a body
-    
+
       response =  HandleGetState();
    }
    else if (hdr == "XL") {
       response = ToggleExitLight(body);
    }
    else if (hdr == "NL") {
-      response = ToggleEntryLight(body); 
+      response = ToggleEntryLight(body);
    }
    else if (hdr == "NG") {
-      response = ToggleEntryGate(body); 
-   }  
+      response = ToggleEntryGate(body);
+   }
    else if (hdr == "XG") {
-      response = ToggleExitGate(body); 
+      response = ToggleExitGate(body);
    }
    else if (hdr == "PL") {
-      response = ToggleParkingLights(body); 
+      response = ToggleParkingLights(body);
    }
-  
+
    return response;
 }
 
@@ -298,16 +298,16 @@ String  ProcessRequest(String request) {
 /**
  * void HandleGetState()
  *
- * Parameters: None           
+ * Parameters: None
  *
  * Description:
- * 
+ *
  * This method gets the current state and retuns it as a String.
  */
 String HandleGetState() {
 
    Serial.println("HandleGetState");
-  
+
    String response = "SU:"; // state update
 
    // Get entry gate state
@@ -316,7 +316,7 @@ String HandleGetState() {
       response += "NG=1";
    } else {
       response += "NG=0";
-   }  
+   }
    response += ";";
 
    // get exit gate state
@@ -325,7 +325,7 @@ String HandleGetState() {
       response += "XG=1";
    } else {
       response += "XG=0";
-   }  
+   }
    response += ";";
 
    // get exit gate IR beam
@@ -334,8 +334,8 @@ String HandleGetState() {
       response += "XIR=1";
    } else {
       response += "XIR=0";
-   }  
-  
+   }
+
    response += ";";
 
    // get entry gate IR beam
@@ -344,8 +344,8 @@ String HandleGetState() {
       response += "NIR=1";
    } else {
       response += "NIR=0";
-   } 
-   
+   }
+
    response += ";";
 
    int nl = EntryLightState;
@@ -358,9 +358,9 @@ String HandleGetState() {
    else if (nl == OFF) {
       response += "NL=0";
    }
-  
+
    response += ";";
-  
+
    int xl = ExitLightState;
    if (xl == GREEN) {
       response += "XL=G";
@@ -371,7 +371,7 @@ String HandleGetState() {
    else if (xl == OFF) {
       response += "XL=0";
    }
- 
+
    response += ";";
 
    // get the parking spot states.
@@ -433,22 +433,22 @@ String HandleGetState() {
    }
    pl += "]";
    response += pl + ".";
-   
+
    Serial.println("HandleGetState response: " + response);
-  
+
    return response;
 }
 
 /**
  * int GetEntryIRState()
- * 
+ *
  * Parameters: None
  *
- * Description: 
+ * Description:
  * returns ARRIVED if the entry IR beam is broken, NOT_ARRIVED otherwise
  */
 
-int GetEntryIRState() 
+int GetEntryIRState()
 {
    int EntryBeamState = digitalRead(EntryBeamRcvr);
 
@@ -463,14 +463,14 @@ int GetEntryIRState()
 
 /**
  * int GetExitIRState()
- * 
+ *
  * Parameters: None
  *
- * Description: 
- * 
+ * Description:
+ *
  * Returns ARRIVED if the exit IR beam is broken, NOT_ARRIVED otherwise
  */
-int GetExitIRState() 
+int GetExitIRState()
 {
    int ExitBeamState = digitalRead(ExitBeamRcvr);
 
@@ -495,21 +495,23 @@ int GetExitIRState()
  * significantly. If a car is detected, then OCCUPIED is returned,
  * otherwise EMPTY is returned
  */
-int PrevStall1Val = -1; // the previous parking stall 1 reading
+//int PrevStall1Val = -1; // the previous parking stall 1 reading
 int GetParkingStall1State() {
-   
+
    long Stall1SensorVal = ProximityVal(Stall1SensorPin); //Check parking space 1
-   if (PrevStall1Val == -1) {
-      PrevStall1Val = Stall1SensorVal;
-   }
+   //if (PrevStall1Val == -1) {
+     // PrevStall1Val = Stall1SensorVal;
+   //}
    Serial.print("  Stall 1 = ");
    Serial.println(Stall1SensorVal);
 
-   if(abs(PrevStall1Val - Stall1SensorVal) > 5) {
-      return OCCUPIED;
-   }
-    
-   return EMPTY;   
+   if(Stall1SensorVal < THRESHOLD)
+		return OCCUPIED;
+   //if(abs(PrevStall1Val - Stall1SensorVal) > 5) {
+   //   return OCCUPIED;
+   //}
+
+   return EMPTY;
 }
 
 /**
@@ -524,21 +526,23 @@ int GetParkingStall1State() {
  * significantly. If a car is detected, then OCCUPIED is returned,
  * otherwise EMPTY is returned
  */
-int PrevStall2Val = -1; // previous state of parking stall 2 reading 
+//int PrevStall2Val = -1; // previous state of parking stall 2 reading
 int GetParkingStall2State() {
-   
+
    long Stall2SensorVal = ProximityVal(Stall2SensorPin); //Check parking space 2
-   if (PrevStall2Val == -1) {
-      PrevStall2Val = Stall2SensorVal;
-   }
+   //if (PrevStall2Val == -1) {
+    //  PrevStall2Val = Stall2SensorVal;
+   //}
    Serial.print("  Stall 2 = ");
 
    Serial.println(Stall2SensorVal);
 
-   if(abs(PrevStall2Val - Stall2SensorVal) > 5) {
-      return OCCUPIED;
-   }
-    
+   if(Stall2SensorVal < THRESHOLD)
+		return OCCUPIED;
+   //if(abs(PrevStall2Val - Stall2SensorVal) > 5) {
+     // return OCCUPIED;
+   //}
+
    return EMPTY;
 }
 
@@ -554,21 +558,23 @@ int GetParkingStall2State() {
  * significantly. If a car is detected, then OCCUPIED is returned,
  * otherwise EMPTY is returned
  */
-int PrevStall3Val = -1; // the previous parking stall 3 reading
+//int PrevStall3Val = -1; // the previous parking stall 3 reading
 int GetParkingStall3State() {
-   
+
    long Stall3SensorVal = ProximityVal(Stall3SensorPin); //Check parking space 3
-   if (PrevStall3Val == -1) {
-      PrevStall3Val = Stall3SensorVal;
-   }
+   //if (PrevStall3Val == -1) {
+     // PrevStall3Val = Stall3SensorVal;
+   //}
    Serial.print("  Stall 3 = ");
 
    Serial.println(Stall3SensorVal);
 
-   if(abs(PrevStall3Val - Stall3SensorVal) > 5) {
-      return OCCUPIED;
-   }
-    
+   if(Stall3SensorVal < THRESHOLD)
+		return OCCUPIED;
+   //if(abs(PrevStall3Val - Stall3SensorVal) > 5) {
+     // return OCCUPIED;
+   //}
+
    return EMPTY;
 }
 
@@ -584,38 +590,41 @@ int GetParkingStall3State() {
  * significantly. If a car is detected, then OCCUPIED is returned,
  * otherwise EMPTY is returned
  */
-int PrevStall4Val = -1; // the previous parking stall 4 reading
+//int PrevStall4Val = -1; // the previous parking stall 4 reading
 int GetParkingStall4State() {
-   
+
    long Stall4SensorVal = ProximityVal(Stall4SensorPin); //Check parking space 4
-   if (PrevStall4Val == -1) {
-      PrevStall4Val = Stall4SensorVal;
-   }
-    
+   //if (PrevStall4Val == -1) {
+     // PrevStall4Val = Stall4SensorVal;
+   //}
+
    Serial.print("  Stall 4 = ");
    Serial.println(Stall4SensorVal);
-    
-   if(abs(PrevStall4Val - Stall4SensorVal) > 5) {
-      return 1;
-   }
-   return 0;
-}       
+
+   if(Stall4SensorVal < THRESHOLD)
+		return OCCUPIED;
+
+   //if(abs(PrevStall4Val - Stall4SensorVal) > 5) {
+      //return 1;
+   //}
+   return EMPTY;
+}
 
 /**
  * long ProximityVal(int Pin)
  *
- * Parameters:            
+ * Parameters:
  * int pin - the pin on the Arduino where the QTI sensor is connected.
  *
  * Description:
  *
  * QTI schematics and specs: http://www.parallax.com/product/555-27401
  * This method initalizes the QTI sensor pin as output and charges the
- * capacitor on the QTI. The QTI emits IR light which is reflected off 
- * of any surface in front of the sensor. The amount of IR light 
- * reflected back is detected by the IR resistor on the QTI. This is 
- * the resistor that the capacitor discharges through. The amount of 
- * time it takes to discharge determines how much light, and therefore 
+ * capacitor on the QTI. The QTI emits IR light which is reflected off
+ * of any surface in front of the sensor. The amount of IR light
+ * reflected back is detected by the IR resistor on the QTI. This is
+ * the resistor that the capacitor discharges through. The amount of
+ * time it takes to discharge determines how much light, and therefore
  * the lightness or darkness of the material in front of the QTI sensor.
  * Given the closeness of the object in this application you will get
  * 0 if the sensor is covered
@@ -631,8 +640,8 @@ long ProximityVal(int Pin)
    digitalWrite(Pin, LOW);       // Pin LOW
    while(digitalRead(Pin))       // Count until the pin goes
    {                             // LOW (cap discharges)
-      duration++;                
-   }   
+      duration++;
+   }
    return duration;              // Returns the duration of the pulse
 }
 
@@ -650,7 +659,7 @@ void EntryLightGreen()
    Serial.println( "Turn on entry green LED" );
    digitalWrite(EntryGateGreenLED, LOW);
    digitalWrite(EntryGateRedLED, HIGH);
-   
+
    EntryLightState = GREEN;
 }
 
@@ -668,8 +677,8 @@ void EntryLightRed()
    Serial.println( "Turn on entry red LED" );
    digitalWrite(EntryGateRedLED, LOW);
    digitalWrite(EntryGateGreenLED, HIGH);
-   
-   EntryLightState = RED;  
+
+   EntryLightState = RED;
 }
 
 /**
@@ -686,7 +695,7 @@ void EntryLightOff()
    digitalWrite(EntryGateRedLED, HIGH);
    digitalWrite(EntryGateGreenLED, HIGH);
 
-   EntryLightState = OFF;   
+   EntryLightState = OFF;
 }
 
 /**
@@ -743,7 +752,7 @@ void ExitLightRed()
    Serial.println( "Turn on exit red LED" );
    digitalWrite(ExitGateRedLED, LOW);
    digitalWrite(ExitGateGreenLED, HIGH);
-   
+
    ExitLightState = RED;
 }
 
@@ -903,16 +912,16 @@ String ToggleParkingLights(String newState)
 
    String body[20];
    int counter = 0;
-  
+
    int i=0;
    String param = "";
-   while (i < newSettings.length()) { 
+   while (i < newSettings.length()) {
       char c = newSettings.charAt(i);
-      if (c == ',') { 
+      if (c == ',') {
          body[counter] = String (param);
          counter++;
          param = "";
-      }    
+      }
       else {
          param += c;
       }
@@ -922,7 +931,7 @@ String ToggleParkingLights(String newState)
    for (int j=0; j < counter; j++) {
       String spot = body[j].substring(0,1);
       String state = body[j].substring(2,3);
-    
+
       if (spot == "1") {
          if (state == "1") {
             TurnOnStall1();
@@ -961,9 +970,9 @@ String ToggleParkingLights(String newState)
 
 /*********************************************************************
  * void TurnOffStall1()
- * Parameters:  None          
+ * Parameters:  None
  *
- * Description: 
+ * Description:
  * This method turns off the LED for parking stall 1
  ***********************************************************************/
 void TurnOffStall1() {
@@ -1006,13 +1015,13 @@ void TurnOnStall4() {
    ParkingStall4LEDState = ON;
 }
 
-void EntryGateOpen() 
+void EntryGateOpen()
 {
    Serial.println( "Open Entry Gate" );   //Here we open the entry gate
    EntryGateServo.write(OpenGate);
 }
 
-void EntryGateClose() 
+void EntryGateClose()
 {
    Serial.println( "Open Entry Gate" );   //Here we open the entry gate
    EntryGateServo.write(CloseGate);
@@ -1026,9 +1035,9 @@ void EntryGateClose()
  *
  * Print out the connection information.
  */
-void printConnectionStatus() 
+void printConnectionStatus()
 {
-   // Print the basic connection and network information: 
+   // Print the basic connection and network information:
    // Network, IP, and Subnet mask
    ip = WiFi.localIP();
    Serial.print("Connected to ");
@@ -1038,7 +1047,7 @@ void printConnectionStatus()
    subnet = WiFi.subnetMask();
    Serial.print("Netmask: ");
    Serial.println(subnet);
-   
+
    // Print our MAC address.
    WiFi.macAddress(mac);
    Serial.print("WiFi Shield MAC address: ");
@@ -1053,7 +1062,7 @@ void printConnectionStatus()
    Serial.print(mac[1],HEX);
    Serial.print(":");
    Serial.println(mac[0],HEX);
-   
+
    // Print the wireless signal strength:
    rssi = WiFi.RSSI();
    Serial.print("Signal strength (RSSI): ");
@@ -1061,5 +1070,3 @@ void printConnectionStatus()
    Serial.println(" dBm");
 
 }
-
-

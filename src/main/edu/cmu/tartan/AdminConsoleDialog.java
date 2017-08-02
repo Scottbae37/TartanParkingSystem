@@ -71,20 +71,23 @@ public class AdminConsoleDialog extends JDialog {
         }
         averageOccupancy = (HashMap<String, Integer>) message.get(TartanParams.AVERAGE_OCCUPANCY);
         averageOccupancy = new HashMap<>();
-//for test
+        //for test
         averageOccupancy.put("2017.08.18", 45);
+        averageOccupancy.put("2017.08.19", 90);
+        averageOccupancy.put("2017.08.20", 95);
 
         Iterator ir = (Iterator) averageOccupancy.keySet().iterator();
         String day;
         StringBuilder sbr = new StringBuilder();
+        sbr.append("<html>");
         while (ir.hasNext()) {
             day = (String) ir.next();
 
-            sbr.append(" " + day + "  -->  " + String.valueOf(averageOccupancy.get(day)) + "% " + " \n");
-            sbr.append("\n");
-            sbr.append(System.lineSeparator());
+            sbr.append(" " + day + "  -->  " + String.valueOf(averageOccupancy.get(day)) + "% " + " <br>");
+
 
         }
+        sbr.append("</html>");
         occupancy_value.setText(sbr.toString());
 
         Integer[] states = (Integer[]) message.get(TartanParams.ACTUAL_SPOT);

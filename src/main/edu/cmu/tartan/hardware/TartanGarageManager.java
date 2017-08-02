@@ -2,7 +2,10 @@ package edu.cmu.tartan.hardware;
 
 import edu.cmu.tartan.service.TartanParams;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Observable;
+import java.util.StringTokenizer;
 
 /**
  * Manages connection and data flow to the Tartan Garage.
@@ -323,7 +326,13 @@ public class TartanGarageManager extends Observable {
                         String spotInfo[] = t.split(TartanSensors.PARAM_EQ);
                         lightState[Integer.parseInt(spotInfo[0])] = Integer.parseInt(spotInfo[1]);
                     }
-                    currentState.put(TartanSensors.PARKING_SPOT_LIGHT, lightState);
+                    ArrayList<Integer> temp = new ArrayList<>();
+                    for (int i = 0; i < lightState.length; i++) {
+                        if (lightState[i] != null) {
+                            temp.add(lightState[i]);
+                        }
+                    }
+                    currentState.put(TartanSensors.PARKING_SPOT_LIGHT, (Integer[]) temp.toArray(new Integer[temp.size()]));
                 } else if (pcmd.equals(TartanSensors.PARKING_SPOT_OCCUPIED)) {
 
                     Integer[] occupiedState = new Integer[10];
@@ -335,7 +344,13 @@ public class TartanGarageManager extends Observable {
                         String spotInfo[] = t.split(TartanSensors.PARAM_EQ);
                         occupiedState[Integer.parseInt(spotInfo[0]) - 1] = Integer.parseInt(spotInfo[1]);
                     }
-                    currentState.put(TartanSensors.PARKING_SPOT_OCCUPIED, occupiedState);
+                    ArrayList<Integer> temp = new ArrayList<>();
+                    for (int i = 0; i < occupiedState.length; i++) {
+                        if (occupiedState[i] != null) {
+                            temp.add(occupiedState[i]);
+                        }
+                    }
+                    currentState.put(TartanSensors.PARKING_SPOT_OCCUPIED, (Integer[]) temp.toArray(new Integer[temp.size()]));
                 }
             }
         }
@@ -387,15 +402,17 @@ public class TartanGarageManager extends Observable {
                         if (connection.isConnected() == false) {
                             return;
                         }
-                        synchronized (currentState) {
-                            updateGarageState();
-                        }
+                        updateGarageState();
                     }
                     if (vehicleDetectedAtEntry(currentState)) {
                         alertVehicleAtEntry();
+                    } else {
+                        alertVehicleOutEntry();
                     }
                     if (vehicleDetectedAtExit(currentState)) {
                         alertVehicleAtExit();
+                    } else {
+                        alertVehicleReturn();
                     }
                     // currently a 5sec delay
                     try {
@@ -421,6 +438,14 @@ public class TartanGarageManager extends Observable {
         notifyObservers(TartanParams.MSG_VEHICLE_AT_ENTRY);
     }
 
+    private void alertVehicleOutEntry() {
+
+        // The only observer should be the parking service
+        setChanged();
+
+
+        notifyObservers(TartanParams.MSG_VEHICLE_OUT_ENTRY);
+    }
 
     /**
      * Notify vehicle at exit gate. Note that this method notifies all parties who care
@@ -429,6 +454,11 @@ public class TartanGarageManager extends Observable {
     private void alertVehicleAtExit() {
         setChanged();
         notifyObservers(TartanParams.MSG_VEHICLE_AT_EXIT);
+    }
+
+    private void alertVehicleReturn() {
+        setChanged();
+        notifyObservers(TartanParams.MSG_VEHICLE_RETURN);
     }
 
     /**

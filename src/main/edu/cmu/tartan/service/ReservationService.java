@@ -1,5 +1,6 @@
 package edu.cmu.tartan.service;
 
+import edu.cmu.tartan.TartanUtils;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.Reservation;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.ReservationStore;
 
@@ -238,8 +239,9 @@ public class ReservationService extends TartanService {
             spot = 0;
         }
         // There are no spots available for this time
-        else if (occupiedSpots.size() >= parkingSpots.size()) { /* FIXME: Maybe logical error, Should use >= for fully occupied slots */
-            return SPOT_UNAVAILABLE;
+        else if (occupiedSpots.size() >= parkingSpots.size()) {
+            /* FIXME: Maybe logical error, Should use >= for fully occupied slots */
+            return TartanParams.SPOT_UNAVAILABLE;
         } else {
             Collections.sort(occupiedSpots);
 
@@ -254,7 +256,7 @@ public class ReservationService extends TartanService {
      * @param rsvp The reservation to verify.
      * @return True if the reservation verified, false otherwise.
      */
-    private Boolean verifyReservation(Reservation rsvp) {
+    private boolean verifyReservation(Reservation rsvp) {
 
         Date start = rsvp.getStartTime();
         Date end = rsvp.getEndTime();
@@ -285,11 +287,11 @@ public class ReservationService extends TartanService {
         }
 
         // check other parameters
-        if (rsvp.getCustomerName() == null || rsvp.getCustomerName().trim().isEmpty()) {
+        if (TartanUtils.IS_EMPTY.test(rsvp.getCustomerName())) {
             return false;
         }
 
-        if (rsvp.getVehicleID() == null || rsvp.getVehicleID().trim().isEmpty()) {
+        if (TartanUtils.IS_EMPTY.test(rsvp.getVehicleID())) {
             return false;
         }
 
@@ -407,9 +409,9 @@ public class ReservationService extends TartanService {
             String licensePlate = (String) request.get(TartanParams.VEHICLE);
 
             // prefer lookup by customer over license plate
-            if (customer != null) {
+            if (TartanUtils.IS_EMPTY.test(customer) == false) {
                 results = rsvpStore.lookupByCustomer(customer);
-            } else if (licensePlate != null) {
+            } else if (TartanUtils.IS_EMPTY.test(licensePlate) == false) {
                 results = rsvpStore.lookupByVehicle(licensePlate);
             }
 

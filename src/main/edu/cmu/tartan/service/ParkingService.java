@@ -53,8 +53,12 @@ public class ParkingService extends TartanService implements Observer {
         String cmd = (String) obj;
         if (cmd.equals(TartanParams.MSG_VEHICLE_AT_ENTRY)) {
             signalVehicleArrived();
+        } else if(cmd.equals(TartanParams.MSG_VEHICLE_OUT_ENTRY)) {
+            signalVehicleLeaved();
         } else if (cmd.equals(TartanParams.MSG_VEHICLE_AT_EXIT)) {
             signalVehicleReadyToLeave();
+        } else if (cmd.equals(TartanParams.MSG_VEHICLE_RETURN)) {
+            signalVehicleReturned();
         }
     }
 
@@ -69,6 +73,13 @@ public class ParkingService extends TartanService implements Observer {
         sendMessage(KioskService.KIOSK_SERVICE, body);
     }
 
+    private void signalVehicleReturned() {
+        HashMap<String, Object> body = new HashMap<String, Object>();
+        body.put(TartanParams.COMMAND, TartanParams.MSG_VEHICLE_RETURN);
+        body.put(TartanParams.ACTUAL_SPOT, garageManager.getSpotOccupiedState());
+        sendMessage(KioskService.KIOSK_SERVICE, body);
+    }
+
     /**
      * Indicate that a vehicle has arrived.
      */
@@ -76,6 +87,14 @@ public class ParkingService extends TartanService implements Observer {
         System.out.println("ParkingService.signalVehicleArrived");
         HashMap<String, Object> body = new HashMap<String, Object>();
         body.put(TartanParams.COMMAND, TartanParams.MSG_VEHICLE_AT_ENTRY);
+        body.put(TartanParams.ACTUAL_SPOT, garageManager.getSpotOccupiedState());
+        sendMessage(KioskService.KIOSK_SERVICE, body);
+    }
+
+    private void signalVehicleLeaved() {
+        System.out.println("ParkingService.signalVehicleLeaved");
+        HashMap<String, Object> body = new HashMap<String, Object>();
+        body.put(TartanParams.COMMAND, TartanParams.MSG_VEHICLE_OUT_ENTRY);
         body.put(TartanParams.ACTUAL_SPOT, garageManager.getSpotOccupiedState());
         sendMessage(KioskService.KIOSK_SERVICE, body);
     }
@@ -369,6 +388,11 @@ public class ParkingService extends TartanService implements Observer {
 
         if (leavingVehicle) {
             applyPayment(vid);
+        }else{
+            HashMap<String, Object> exitFailedMsg = new HashMap<String, Object>();
+            exitFailedMsg.put(TartanParams.COMMAND, TartanParams.MSG_EXIT_STATE);
+            exitFailedMsg.put(TartanParams.EXIT_STATE, true);
+            sendMessage(KioskService.KIOSK_SERVICE, exitFailedMsg);
         }
     }
 
