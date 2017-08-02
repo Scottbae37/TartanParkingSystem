@@ -4,5 +4,9 @@ import java.util.Objects;
 import java.util.function.Predicate;
 
 public final class TartanUtils {
-    public static final Predicate<String> IS_EMPTY = (s -> Objects.isNull(s) || s.isEmpty());
+    public static final Predicate<String> IS_EMPTY = (s -> Objects.isNull(s) || (s).trim().isEmpty());
+
+    private TartanUtils() {
+
+    }
 }
