@@ -1,6 +1,7 @@
 package edu.cmu.tartan.service;
 
 import edu.cmu.tartan.TartanKioskWindow;
+import edu.cmu.tartan.TartanUtils;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.Payment;
 import edu.cmu.tartan.edu.cmu.tartan.reservation.Reservation;
 
@@ -402,12 +403,12 @@ public class KioskService extends TartanService {
      */
     public Boolean getReservation(String name, String licensePlate) {
 
-        HashMap<String, Object> body = new HashMap<String, Object>();
+        HashMap<String, Object> body = new HashMap<>();
         body.put(TartanParams.COMMAND, TartanParams.MSG_REDEEM_RSVP);
 
-        if (name != null) {
+        if (TartanUtils.IS_EMPTY.test(name) == false) {
             body.put(TartanParams.CUSTOMER, name);
-        } else if (licensePlate != null) {
+        } else if (TartanUtils.IS_EMPTY.test(licensePlate) == false) {
             body.put(TartanParams.VEHICLE, licensePlate);
         }
 

@@ -394,9 +394,9 @@ public class ReservationService extends TartanService {
             String licensePlate = (String) request.get(TartanParams.VEHICLE);
 
             // prefer lookup by customer over license plate
-            if (customer != null) {
+            if (TartanUtils.IS_EMPTY.test(customer) == false) {
                 results = rsvpStore.lookupByCustomer(customer);
-            } else if (licensePlate != null) {
+            } else if (TartanUtils.IS_EMPTY.test(licensePlate) == false) {
                 results = rsvpStore.lookupByVehicle(licensePlate);
             }
 
