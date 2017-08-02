@@ -107,7 +107,7 @@ public class TartanGarageConnection {
                 try {
                     houseSocket.close();
                 } catch (IOException e) {
-                    /* FIXME: Defect(ignored exception information) */
+                    e.printStackTrace();
                 }
             }
         }
