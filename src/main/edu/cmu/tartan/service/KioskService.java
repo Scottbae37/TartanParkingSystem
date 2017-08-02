@@ -33,6 +33,7 @@ public class KioskService extends TartanService {
      * If off, exit operation is deactivated, so Kiosk doesn't show popup to get v-id until the vehicle exit is done.
      * */
     private Boolean isExitOperationOn;
+    private boolean isCarReturned = false;
 
     /**
      * Default constructor
@@ -79,6 +80,7 @@ public class KioskService extends TartanService {
             handleParkingExit(message);
         } else if (cmd.equals(TartanParams.MSG_VEHICLE_RETURN)) {
             kiosk.setStatus(message);
+            isCarReturned = true;
         } else if (cmd.equals(TartanParams.MSG_WRONG_SPOT)) {
             handleParkingError(message);
         } else if (cmd.equals(TartanParams.MSG_NEW_RSVP)) {
@@ -143,9 +145,10 @@ public class KioskService extends TartanService {
     private void handleParkingExit(HashMap<String, Object> message) {
         if (isExitOperationOn == true) {
             isExitOperationOn = false;
+            isCarReturned = false;
             String vid = JOptionPane.showInputDialog(kiosk, "Enter vehicle ID to exit", "Exit", JOptionPane.QUESTION_MESSAGE);
 //            vid =
-            if (vid != null && ("".equals(vid) == false)) {
+            if (vid != null && ("".equals(vid) == false) && !isCarReturned) {
                 HashMap<String, Object> msg = new HashMap<String, Object>();
                 msg.put(TartanParams.COMMAND, TartanParams.MSG_EXIT_GARAGE);
                 msg.put(TartanParams.PAYLOAD, vid);
