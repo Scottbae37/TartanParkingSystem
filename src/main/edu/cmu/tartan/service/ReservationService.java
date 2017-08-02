@@ -6,6 +6,9 @@ import edu.cmu.tartan.edu.cmu.tartan.reservation.ReservationStore;
 
 import java.util.*;
 
+import static edu.cmu.tartan.service.TartanParams.INVALID_SPOT;
+import static edu.cmu.tartan.service.TartanParams.SPOT_UNAVAILABLE;
+
 /**
  * Manages reservations for the system.
  * <p>
@@ -135,17 +138,28 @@ public class ReservationService extends TartanService {
         HashMap<String, Object> response = new HashMap<String, Object>();
 
         // get a spot for this window
-        Integer spot = getParkingSpot(rsvp);
+        Integer spot = INVALID_SPOT;
+        Integer[] occupiedStateCheck = (Integer[]) message.get(TartanParams.CURRENT_OCCUPIED_STATE);
+        int i;
+        for (i = 0; i < occupiedStateCheck.length; i++) {
+            if (occupiedStateCheck[i] == 0) {
+                spot = i;
+                break;
+            }
+        }
+        if (i == occupiedStateCheck.length) {
+            spot = SPOT_UNAVAILABLE;
+        }
 
-
-        if (!(spot.equals(TartanParams.INVALID_SPOT)) || !(spot.equals(TartanParams.SPOT_UNAVAILABLE))) {
+        if ((spot.equals(INVALID_SPOT)) || (spot.equals(SPOT_UNAVAILABLE))) {
+            response.put(TartanParams.COMMAND, TartanParams.ERROR);
+            response.put(TartanParams.PAYLOAD, "Please call attendant for assistance!");
+        } else {
             response.put(TartanParams.COMMAND, TartanParams.MSG_UPDATE_RSVP);
             rsvp.setSpotId(spot);
             response.put(TartanParams.PAYLOAD, rsvp);
-        } else {
-            response.put(TartanParams.COMMAND, TartanParams.ERROR);
-            response.put(TartanParams.PAYLOAD, "Please call attendant for assistance!");
         }
+
         sendMessage(KioskService.KIOSK_SERVICE, response);
     }
 
@@ -205,7 +219,7 @@ public class ReservationService extends TartanService {
 
         ArrayList<Integer> occupiedSpots = new ArrayList<Integer>();
 
-        Integer spot = TartanParams.INVALID_SPOT;
+        Integer spot = INVALID_SPOT;
 
         Date newSt = newRsvp.getStartTime();
         Date newEt = newRsvp.getEndTime();
@@ -230,7 +244,14 @@ public class ReservationService extends TartanService {
             return TartanParams.SPOT_UNAVAILABLE;
         } else {
             Collections.sort(occupiedSpots);
-            spot = occupiedSpots.get(occupiedSpots.size() - 1) + 1; // get the next spot
+            for (int i = 0; i < parkingSpots.size(); i++) {
+                if (i >= occupiedSpots.size()) {
+                    break;
+                } else if (i != occupiedSpots.get(i)) {
+                    spot = i;
+                    break;
+                }
+            }
         }
         return spot;
     }
@@ -315,7 +336,7 @@ public class ReservationService extends TartanService {
             // get a spot for this window
             Integer spot = getParkingSpot(newRsvp);
 
-            if ((spot.equals(TartanParams.INVALID_SPOT)) || (spot.equals(TartanParams.SPOT_UNAVAILABLE))) {
+            if ((spot.equals(INVALID_SPOT)) || (spot.equals(SPOT_UNAVAILABLE))) {
                 response.put(TartanParams.COMMAND, TartanParams.ERROR);
                 response.put(TartanParams.PAYLOAD, "Parking space unavailable at desired time");
                 sendMessage((String) request.get(TartanParams.SOURCE_ID), response);

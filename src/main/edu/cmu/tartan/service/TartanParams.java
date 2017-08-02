@@ -16,6 +16,7 @@ public interface TartanParams {
     public static final String COMMAND = "COMMAND";           // the command to execute
     public static final String PAYLOAD = "PAYLOAD";           // command specific data
     public static final String ERROR = "ERROR";           // command specific data
+    public static final String CURRENT_OCCUPIED_STATE = "CurrentOccupiedState";
 
     // System commands
     public final static String MSG_NEW_RSVP = "NewRsvp";

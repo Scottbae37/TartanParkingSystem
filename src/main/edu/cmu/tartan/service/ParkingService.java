@@ -175,6 +175,7 @@ public class ParkingService extends TartanService implements Observer {
                 rsvp.setSpotId(TartanParams.INVALID_SPOT);
 
                 body.put(TartanParams.PAYLOAD, rsvp);
+                body.put(TartanParams.CURRENT_OCCUPIED_STATE, occupiedStateCheck);
                 sendMessage(ReservationService.RESERVATION_SERVICE, body);
                 return;
             }
