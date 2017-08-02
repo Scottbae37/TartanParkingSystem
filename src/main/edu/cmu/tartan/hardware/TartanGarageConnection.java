@@ -93,7 +93,7 @@ public class TartanGarageConnection {
             return in.readLine();
 
         } catch (IOException ioe) {
-            //ioe.printStackTrace(); /* FIXME: Defect(ignored exception information) */
+            ioe.printStackTrace();
         }
         return null;
     }

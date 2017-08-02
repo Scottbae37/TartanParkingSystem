@@ -2,7 +2,10 @@ package edu.cmu.tartan.hardware;
 
 import edu.cmu.tartan.service.TartanParams;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Observable;
+import java.util.StringTokenizer;
 
 /**
  * Manages connection and data flow to the Tartan Garage.
@@ -399,9 +402,7 @@ public class TartanGarageManager extends Observable {
                         if (connection.isConnected() == false) {
                             return;
                         }
-                        synchronized (currentState) {
-                            updateGarageState();
-                        }
+                        updateGarageState();
                     }
                     if (vehicleDetectedAtEntry(currentState)) {
                         alertVehicleAtEntry();
