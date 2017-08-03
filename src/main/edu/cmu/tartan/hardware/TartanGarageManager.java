@@ -80,8 +80,9 @@ public class TartanGarageManager extends Observable {
      * Disconnect from the house
      */
     public void disconnectFromGarage() {
-        if(connection != null)
+        if (connection != null && connection.isConnected()) {
             connection.disconnect();
+        }
     }
 
     /**
@@ -209,15 +210,13 @@ public class TartanGarageManager extends Observable {
 
         System.out.println("Requesting currentState");
 
-        synchronized (connection) {
-            String update = connection.sendMessageToGarage(TartanSensors.GET_STATE + TartanSensors.MSG_END);
-            System.out.println("=== updateState=" + update);
-            if (update == null) {
-                return;
-            }
-
-            handleStateUpdate(update);
+        String update = connection.sendMessageToGarage(TartanSensors.GET_STATE + "=" +TartanSensors.MSG_END);
+        System.out.println("=== updateState=" + update);
+        if (update == null) {
+            return;
         }
+
+        handleStateUpdate(update);
     }
 
     /**
