@@ -346,7 +346,7 @@ public class TartanGarageManagerTest {
 
         Mockito.verify(conn, Mockito.atMost(2)).isConnected();
 
-        Mockito.verify(conn)
+        Mockito.verify(conn, Mockito.atLeast(1))
                 .sendMessageToGarage(cmd.toString());
 
     }
