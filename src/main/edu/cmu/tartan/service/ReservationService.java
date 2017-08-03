@@ -244,13 +244,17 @@ public class ReservationService extends TartanService {
             return TartanParams.SPOT_UNAVAILABLE;
         } else {
             Collections.sort(occupiedSpots);
-            for (int i = 0; i < parkingSpots.size(); i++) {
+            int i = 0;
+            for (i = 0; i < parkingSpots.size(); i++) {
                 if (i >= occupiedSpots.size()) {
                     break;
                 } else if (i != occupiedSpots.get(i)) {
                     spot = i;
                     break;
                 }
+            }
+            if (i != parkingSpots.size()) {
+                spot = i;
             }
         }
         return spot;

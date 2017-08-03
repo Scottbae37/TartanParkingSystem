@@ -5,6 +5,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -305,7 +306,9 @@ public class TartanGarageManagerTest {
 
     @Test
     public void testDisconnectFromGarage() {
-
+        Mockito.doReturn(true)
+                .when(conn)
+                .isConnected();
         Mockito.doNothing().when(conn)
                 .disconnect();
         garageManager.disconnectFromGarage();
@@ -340,14 +343,14 @@ public class TartanGarageManagerTest {
 
         Mockito.doReturn(null)
                 .when(conn)
-                .sendMessageToGarage(cmd.toString());
+                .sendMessageToGarage(Mockito.anyString());
 
         garageManager.startUpdateThread();
 
         Mockito.verify(conn, Mockito.atMost(2)).isConnected();
 
         Mockito.verify(conn, Mockito.atLeast(1))
-                .sendMessageToGarage(cmd.toString());
+                .sendMessageToGarage(Mockito.anyString());
 
     }
 

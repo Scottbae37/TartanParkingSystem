@@ -241,11 +241,13 @@ public class ReservationServiceTest {
 
     @org.junit.Test
     public void updateReservationHandleMeg() throws Exception {
+        Integer[] occuList = {0,0,0,0};
         HashMap<String, Object> msg = new HashMap<String, Object>();
         Vector<Reservation> reservations = new Vector<>();
         Reservation reservation = Mockito.mock(Reservation.class);
         msg.put(TartanParams.PAYLOAD, reservation);
         msg.put(TartanParams.COMMAND, TartanParams.MSG_UPDATE_RSVP);
+        msg.put(TartanParams.CURRENT_OCCUPIED_STATE, occuList);
         Mockito.when(reservationStore.getReservations()).thenReturn(reservations);
         int sizeOfParkingSpots = 4;
         ArrayList<Integer> parkingSpots = new ArrayList<>();
@@ -398,10 +400,6 @@ public class ReservationServiceTest {
         message.put(TartanParams.COMMAND, TartanParams.MSG_GET_PARKING_SPOTS);
         message.put(TartanParams.PAYLOAD, parkingSpots);
         reservationService.handleMessage(message);
-
-
-        ret = Whitebox.invokeMethod(reservationService, "getParkingSpot", reservation);
-        Assert.assertTrue(ret == sizeOfParkingSpots - 1);
 
         reservations.add(overReservation);
         ret = Whitebox.invokeMethod(reservationService, "getParkingSpot", reservation);
