@@ -435,7 +435,7 @@ public class ParkingService extends TartanService implements Observer {
      */
     @Override
     public void terminate() {
-        garageManager.disconnectFromGarage();
+        disconnectFromGarage();
         stop();
 
     }
