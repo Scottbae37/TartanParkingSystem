@@ -267,15 +267,11 @@ String  ProcessRequest(String request) {
    int endPosition = request.indexOf('.');
    String response = "";
 
-   if(hdrPosition == -1 || request.length() <= 2)
-	   return "OK.";
-
    String hdr = request.substring(0,2);
    String body = request.substring(hdrPosition+1,endPosition);
 
    if (hdr == "GS") {
       // a set state request has a body
-
       response =  HandleGetState();
    }
    else if (hdr == "XL") {
